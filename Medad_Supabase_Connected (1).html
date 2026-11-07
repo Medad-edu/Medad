@@ -1,0 +1,1542 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 72'%3E%3Cpath d='M32 6C32 6 6 34 6 49a26 26 0 0 0 52 0C58 34 32 6 32 6Z' fill='%236d4cf0'/%3E%3Ccircle cx='24' cy='46' r='4' fill='%23fff'/%3E%3Ccircle cx='40' cy='46' r='4' fill='%23fff'/%3E%3C/svg%3E">
+    <title>مِداد | مكتبة التلاميذ</title>
+    <!-- Supabase Auth SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Google Fonts (Tajawal) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+        }
+        .custom-gradient {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        .card-pop {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .card-pop:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.1), 0 8px 8px -5px rgba(0, 0, 0, 0.04);
+        }
+
+                /* ===== Wordmark ===== */
+        .medad-word { font-size:1.9rem; font-weight:900; line-height:1.2; padding:0 2px;
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent; color: transparent; }
+
+        /* ===== Captu Medad mascot ===== */
+        .captu { width:46px; height:52px; display:flex; align-items:flex-end; justify-content:center; }
+        .captu svg { overflow:visible; }
+        .captu-body { transform-origin:32px 66px; animation: captuBob 3.2s ease-in-out infinite; }
+        .captu-shadow { transform-origin:32px 68px; animation: captuShadow 3.2s ease-in-out infinite; }
+        .captu-eyes { transform-origin:32px 44px; animation: captuBlink 5s infinite; }
+        .captu:hover .captu-body { animation: captuJump .6s ease-in-out infinite; }
+        @keyframes captuBob { 0%,100%{ transform:translateY(0) scale(1,1);} 50%{ transform:translateY(-3px) scale(.98,1.03);} }
+        @keyframes captuShadow { 0%,100%{ transform:scaleX(1); opacity:.18;} 50%{ transform:scaleX(.8); opacity:.1;} }
+        @keyframes captuBlink { 0%,92%,100%{ transform:scaleY(1);} 95%{ transform:scaleY(.1);} }
+        @keyframes captuJump { 0%,100%{ transform:translateY(0) scale(1.05,.94);} 50%{ transform:translateY(-8px) scale(.96,1.06);} }
+
+        /* ===== Animated background ===== */
+        #bgArt { position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+        main, footer { position:relative; z-index:1; }
+        nav { position:sticky; top:0; z-index:40; }
+        .bg-blob { position:absolute; border-radius:50%; filter:blur(70px); opacity:.35; will-change:transform; }
+        .bg-blob.b1 { width:420px; height:420px; background:#c4b5fd; top:-120px; right:-80px; animation: blobA 22s ease-in-out infinite; }
+        .bg-blob.b2 { width:360px; height:360px; background:#a5b4fc; bottom:8%; left:-100px; animation: blobB 26s ease-in-out infinite; }
+        .bg-blob.b3 { width:300px; height:300px; background:#f5d0fe; top:42%; left:45%; opacity:.22; animation: blobA 30s ease-in-out infinite reverse; }
+        @keyframes blobA { 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(-60px,80px) scale(1.15);} }
+        @keyframes blobB { 0%,100%{ transform:translate(0,0) scale(1);} 50%{ transform:translate(90px,-60px) scale(1.1);} }
+
+        .bg-item { position:absolute; bottom:-90px; color:var(--c); opacity:0; overflow:visible;
+            animation: itemRise var(--dur) linear var(--delay) infinite; will-change:transform; }
+        @keyframes itemRise {
+            0%   { opacity:0; transform:translate(0,0) rotate(var(--rot)); }
+            10%  { opacity:var(--op); }
+            50%  { transform:translate(var(--sway),-55vh) rotate(calc(var(--rot) * -1)); }
+            90%  { opacity:var(--op); }
+            100% { opacity:0; transform:translate(calc(var(--sway) * -.6),-118vh) rotate(var(--rot)); }
+        }
+
+        .bg-wave { position:absolute; left:0; bottom:0; width:200%; height:150px; }
+        .bg-wave.w1 { opacity:.07; animation: waveMove 28s linear infinite; }
+        .bg-wave.w2 { opacity:.06; height:110px; animation: waveMove 40s linear infinite reverse; }
+        @keyframes waveMove { from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+
+        @media (prefers-reduced-motion: reduce) {
+            .captu-body, .captu-shadow, .captu-eyes, .bg-blob, .bg-item, .bg-wave { animation:none !important; }
+            .bg-item { opacity:.2; bottom:15%; }
+        }
+
+
+        /* ===== Intro: drop appears in the center, then flies to the logo ===== */
+        body.intro-on nav .captu, body.intro-on nav .medad-word { visibility:hidden; animation: introFailShow 0s 10s forwards; }
+        #intro { position:fixed; inset:0; z-index:100; background:#f8fafc; transition:opacity .8s ease .1s; animation: introFailHide 0s 10s forwards; }
+        #intro.out { opacity:0; }
+        #introDrop { position:fixed; left:50%; top:50%; width:150px; height:170px; margin:-110px 0 0 -75px; z-index:101; will-change:transform; animation: introFailHide 0s 10s forwards; }
+        #introDrop .pop { width:100%; height:100%; transform-origin:50% 100%; animation: introFall 1.25s linear both; }
+        #introDrop svg { overflow:visible; display:block; }
+        #introWord { position:absolute; left:0; right:0; top:calc(50% + 78px); text-align:center; font-size:2.4rem; z-index:1;
+            animation: wordIn .7s ease 1s both; transition:opacity .35s ease; }
+        #intro.out #introWord { opacity:0; }
+        @keyframes introFall {
+            0%   { transform:translateY(-70vh) scale(.82,1.28); animation-timing-function:cubic-bezier(.55,0,.9,.5); }
+            52%  { transform:translateY(0) scale(.88,1.22); animation-timing-function:ease-out; }
+            58%  { transform:translateY(0) scale(1.3,.7); animation-timing-function:ease-out; }
+            74%  { transform:translateY(-22px) scale(.93,1.1); animation-timing-function:ease-in; }
+            88%  { transform:translateY(0) scale(1.07,.93); animation-timing-function:ease-out; }
+            100% { transform:none; }
+        }
+        #introRipple { position:absolute; left:50%; top:calc(50% + 56px); width:0; height:0; z-index:0; }
+        #introRipple i { position:absolute; left:0; top:0; width:300px; height:60px; margin:-30px 0 0 -150px; border:3px solid #7c3aed; border-radius:50%;
+            opacity:0; transform:scale(.1); animation: ripple 1.3s ease-out both; }
+        #introRipple i:nth-child(2) { animation-delay:.18s; border-color:#a78bfa; }
+        #introRipple i:nth-child(1) { animation-delay:.62s; }
+        #introRipple i:nth-child(2) { animation-delay:.8s; }
+        @keyframes ripple { 0%{ opacity:.55; transform:scale(.1);} 100%{ opacity:0; transform:scale(1.5);} }
+        @keyframes wordIn { from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+        @keyframes introFailHide { to{ visibility:hidden; } }
+        @keyframes introFailShow { to{ visibility:visible; } }
+    </style>
+</head>
+<body class="text-slate-800 flex flex-col min-h-screen intro-on">
+    <div id="intro" aria-hidden="true">
+        <div id="introRipple"><i></i><i></i></div>
+        <div id="introWord" class="medad-word">مِداد</div>
+    </div>
+    <div id="introDrop" aria-hidden="true"><div class="pop"><div class="captu" style="width:100%;height:100%"><svg viewBox="0 0 64 72" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="captuBodyIntro" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#6366f1"/>
+                                    <stop offset="1" stop-color="#7c3aed"/>
+                                </linearGradient>
+                            </defs>
+                            <ellipse cx="32" cy="68" rx="16" ry="3" fill="#4f46e5" opacity=".18" class="captu-shadow"/>
+                            <g class="captu-body">
+                                <path d="M32 12 C32 12 9 36 9 49 A23 23 0 0 0 55 49 C55 36 32 12 32 12 Z" fill="url(#captuBodyIntro)"/>
+                                <path d="M17 46 C17 38 22 31 27 25" stroke="#fff" stroke-opacity=".45" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+                                <g transform="rotate(-8 32 14)">
+                                    <path d="M17 13 L32 6 L47 13 L32 20 Z" fill="#1e1b4b"/>
+                                    <path d="M24 17 V23 C24 25 40 25 40 23 V17 L32 21 Z" fill="#312e81"/>
+                                    <path d="M46 13 V22" stroke="#fbbf24" stroke-width="1.6" stroke-linecap="round"/>
+                                    <circle cx="46" cy="23.5" r="2" fill="#fbbf24"/>
+                                </g>
+                                <g class="captu-eyes">
+                                    <ellipse cx="25" cy="44" rx="4.2" ry="5" fill="#fff"/>
+                                    <ellipse cx="39" cy="44" rx="4.2" ry="5" fill="#fff"/>
+                                    <circle cx="26" cy="45" r="2.4" fill="#1e1b4b"/>
+                                    <circle cx="40" cy="45" r="2.4" fill="#1e1b4b"/>
+                                    <circle cx="26.8" cy="44" r=".8" fill="#fff"/>
+                                    <circle cx="40.8" cy="44" r=".8" fill="#fff"/>
+                                </g>
+                                <circle cx="18.5" cy="53" r="3" fill="#f9a8d4" opacity=".7"/>
+                                <circle cx="45.5" cy="53" r="3" fill="#f9a8d4" opacity=".7"/>
+                                <path d="M27 53 Q32 59 37 53" stroke="#1e1b4b" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            </g>
+                        </svg></div></div></div>
+
+    <!-- Animated background artwork -->
+    <div id="bgArt" aria-hidden="true">
+        <div class="bg-blob b1"></div>
+        <div class="bg-blob b2"></div>
+        <div class="bg-blob b3"></div>
+        <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+            <symbol id="ic-note" viewBox="0 0 40 50"><rect x="7" y="4" width="28" height="42" rx="4" fill="none" stroke="currentColor" stroke-width="2.6"/><circle cx="7" cy="13" r="2.6" fill="currentColor"/><circle cx="7" cy="23" r="2.6" fill="currentColor"/><circle cx="7" cy="33" r="2.6" fill="currentColor"/><path d="M15 16H28M15 24H28M15 32H23" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></symbol>
+            <symbol id="ic-pencil" viewBox="0 0 24 56"><rect x="4" y="3" width="16" height="7" rx="3" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M4 10H20V38H4Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M4 38L12 53L20 38Z" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/><path d="M9 45.5H15M12 10V38" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+            <symbol id="ic-book" viewBox="0 0 40 50"><path d="M8 5H32Q35 5 35 8V42Q35 45 32 45H8Q6 45 6 43V7Q6 5 8 5Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M13 5V45M20 16H29M20 23H29" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M26 45V36L29 38.5L32 36V45" fill="currentColor" stroke="none"/></symbol>
+            <symbol id="ic-open" viewBox="0 0 60 40"><path d="M30 8Q18 2 4 6V34Q18 30 30 36Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M30 8Q42 2 56 6V34Q42 30 30 36Z" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/><path d="M10 14Q18 12 24 15M10 21Q18 19 24 22M36 15Q42 12 50 14M36 22Q42 19 50 21" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></symbol>
+        </svg>
+        <svg class="bg-item" width="36" height="24" style="left:2%;--dur:27s;--delay:-14s;--sway:-47px;--rot:22deg;--op:0.2;--c:#4f46e5" aria-hidden="true"><use href="#ic-open"/></svg>
+        <svg class="bg-item" width="28" height="35" style="left:8%;--dur:35s;--delay:-7s;--sway:21px;--rot:-16deg;--op:0.24;--c:#7c3aed" aria-hidden="true"><use href="#ic-note"/></svg>
+        <svg class="bg-item" width="37" height="25" style="left:11%;--dur:34s;--delay:-10s;--sway:45px;--rot:6deg;--op:0.16;--c:#6366f1" aria-hidden="true"><use href="#ic-open"/></svg>
+        <svg class="bg-item" width="24" height="55" style="left:16%;--dur:35s;--delay:-15s;--sway:-69px;--rot:-13deg;--op:0.16;--c:#7c3aed" aria-hidden="true"><use href="#ic-pencil"/></svg>
+        <svg class="bg-item" width="37" height="25" style="left:24%;--dur:32s;--delay:-12s;--sway:29px;--rot:9deg;--op:0.2;--c:#a78bfa" aria-hidden="true"><use href="#ic-open"/></svg>
+        <svg class="bg-item" width="36" height="45" style="left:29%;--dur:36s;--delay:-24s;--sway:51px;--rot:-1deg;--op:0.2;--c:#7c3aed" aria-hidden="true"><use href="#ic-note"/></svg>
+        <svg class="bg-item" width="15" height="36" style="left:32%;--dur:35s;--delay:0s;--sway:24px;--rot:10deg;--op:0.24;--c:#6366f1" aria-hidden="true"><use href="#ic-pencil"/></svg>
+        <svg class="bg-item" width="42" height="52" style="left:38%;--dur:23s;--delay:-11s;--sway:-60px;--rot:-3deg;--op:0.2;--c:#a78bfa" aria-hidden="true"><use href="#ic-book"/></svg>
+        <svg class="bg-item" width="42" height="53" style="left:43%;--dur:27s;--delay:-6s;--sway:-24px;--rot:-14deg;--op:0.2;--c:#a78bfa" aria-hidden="true"><use href="#ic-note"/></svg>
+        <svg class="bg-item" width="17" height="39" style="left:47%;--dur:36s;--delay:-15s;--sway:30px;--rot:22deg;--op:0.24;--c:#7c3aed" aria-hidden="true"><use href="#ic-pencil"/></svg>
+        <svg class="bg-item" width="36" height="45" style="left:55%;--dur:36s;--delay:-24s;--sway:-35px;--rot:-15deg;--op:0.24;--c:#7c3aed" aria-hidden="true"><use href="#ic-book"/></svg>
+        <svg class="bg-item" width="38" height="48" style="left:60%;--dur:35s;--delay:-3s;--sway:23px;--rot:-9deg;--op:0.24;--c:#a78bfa" aria-hidden="true"><use href="#ic-note"/></svg>
+        <svg class="bg-item" width="15" height="35" style="left:65%;--dur:27s;--delay:-10s;--sway:24px;--rot:-4deg;--op:0.24;--c:#6366f1" aria-hidden="true"><use href="#ic-pencil"/></svg>
+        <svg class="bg-item" width="30" height="38" style="left:70%;--dur:21s;--delay:-16s;--sway:-61px;--rot:8deg;--op:0.24;--c:#4f46e5" aria-hidden="true"><use href="#ic-note"/></svg>
+        <svg class="bg-item" width="27" height="34" style="left:73%;--dur:31s;--delay:-9s;--sway:58px;--rot:24deg;--op:0.2;--c:#4f46e5" aria-hidden="true"><use href="#ic-book"/></svg>
+        <svg class="bg-item" width="52" height="35" style="left:80%;--dur:29s;--delay:-8s;--sway:28px;--rot:24deg;--op:0.24;--c:#7c3aed" aria-hidden="true"><use href="#ic-open"/></svg>
+        <svg class="bg-item" width="37" height="46" style="left:83%;--dur:20s;--delay:-16s;--sway:61px;--rot:-10deg;--op:0.24;--c:#4f46e5" aria-hidden="true"><use href="#ic-book"/></svg>
+        <svg class="bg-item" width="18" height="42" style="left:90%;--dur:24s;--delay:-8s;--sway:-26px;--rot:0deg;--op:0.16;--c:#6366f1" aria-hidden="true"><use href="#ic-pencil"/></svg>
+        <svg class="bg-wave w1" viewBox="0 0 1440 160" preserveAspectRatio="none"><path d="M0 80 C 180 20, 360 140, 540 80 S 900 20, 1080 80 S 1260 140, 1440 80 L1440 160 L0 160 Z" fill="#7c3aed"/><path d="M1440 80 C 1620 20, 1800 140, 1980 80 S 2340 20, 2520 80 S 2700 140, 2880 80 L2880 160 L1440 160 Z" fill="#7c3aed"/></svg>
+        <svg class="bg-wave w2" viewBox="0 0 1440 160" preserveAspectRatio="none"><path d="M0 90 C 200 140, 380 30, 560 90 S 920 150, 1100 90 S 1280 30, 1440 90 L1440 160 L0 160 Z" fill="#4f46e5"/><path d="M1440 90 C 1640 140, 1820 30, 2000 90 S 2360 150, 2540 90 S 2720 30, 2880 90 L2880 160 L1440 160 Z" fill="#4f46e5"/></svg>
+    </div>
+
+    <!-- Navbar -->
+    <nav class="bg-white shadow-sm border-b border-slate-100 sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-3 cursor-pointer" onclick="resetNavigation()">
+                    <div class="captu" title="كابتن مداد" aria-label="كابتن مداد">
+                        <svg viewBox="0 0 64 72" width="46" height="52" xmlns="http://www.w3.org/2000/svg" role="img" aria-hidden="true">
+                            <defs>
+                                <linearGradient id="captuBody" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0" stop-color="#6366f1"/>
+                                    <stop offset="1" stop-color="#7c3aed"/>
+                                </linearGradient>
+                            </defs>
+                            <ellipse cx="32" cy="68" rx="16" ry="3" fill="#4f46e5" opacity=".18" class="captu-shadow"/>
+                            <g class="captu-body">
+                                <path d="M32 12 C32 12 9 36 9 49 A23 23 0 0 0 55 49 C55 36 32 12 32 12 Z" fill="url(#captuBody)"/>
+                                <path d="M17 46 C17 38 22 31 27 25" stroke="#fff" stroke-opacity=".45" stroke-width="3.2" stroke-linecap="round" fill="none"/>
+                                <g transform="rotate(-8 32 14)">
+                                    <path d="M17 13 L32 6 L47 13 L32 20 Z" fill="#1e1b4b"/>
+                                    <path d="M24 17 V23 C24 25 40 25 40 23 V17 L32 21 Z" fill="#312e81"/>
+                                    <path d="M46 13 V22" stroke="#fbbf24" stroke-width="1.6" stroke-linecap="round"/>
+                                    <circle cx="46" cy="23.5" r="2" fill="#fbbf24"/>
+                                </g>
+                                <g class="captu-eyes">
+                                    <ellipse cx="25" cy="44" rx="4.2" ry="5" fill="#fff"/>
+                                    <ellipse cx="39" cy="44" rx="4.2" ry="5" fill="#fff"/>
+                                    <circle cx="26" cy="45" r="2.4" fill="#1e1b4b"/>
+                                    <circle cx="40" cy="45" r="2.4" fill="#1e1b4b"/>
+                                    <circle cx="26.8" cy="44" r=".8" fill="#fff"/>
+                                    <circle cx="40.8" cy="44" r=".8" fill="#fff"/>
+                                </g>
+                                <circle cx="18.5" cy="53" r="3" fill="#f9a8d4" opacity=".7"/>
+                                <circle cx="45.5" cy="53" r="3" fill="#f9a8d4" opacity=".7"/>
+                                <path d="M27 53 Q32 59 37 53" stroke="#1e1b4b" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <span class="medad-word">مِداد</span>
+                </div>
+                
+                <!-- Search Bar -->
+                <div class="flex-1 max-w-md mx-8 hidden md:block">
+                    <div class="relative">
+                        <input type="text" id="globalSearch" oninput="handleSearch(this.value)" placeholder="ابحث عن ملخص، فرض، أو تمرين..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm">
+                        <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2">
+                    <button onclick="openModal('addResourceModal')" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-3 sm:px-4 py-2 rounded-xl transition-all shadow-sm flex items-center gap-2 text-sm">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>أضف مورداً</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Search Bar for Mobile -->
+        <div class="block md:hidden mb-6">
+            <div class="relative">
+                <input type="text" id="globalSearchMobile" oninput="handleSearch(this.value)" placeholder="ابحث عن ملخص، فرض، أو تمرين..." class="w-full bg-white border border-slate-200 rounded-xl py-2 pl-4 pr-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm shadow-sm">
+                <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-slate-400">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Breadcrumb / Progress Navigation indicator -->
+        <div id="navigationBreadcrumb" class="mb-6 flex flex-wrap items-center gap-2 text-sm text-slate-500 bg-white p-3 rounded-xl shadow-xs border border-slate-100 hidden">
+            <span class="cursor-pointer hover:text-purple-600 transition-colors" onclick="resetNavigation()"><i class="fa-solid fa-house ml-1"></i> الرئيسية</span>
+            <span id="bcSubjectSeparator" class="hidden"><i class="fa-solid fa-chevron-left text-xs mx-1"></i></span>
+            <span id="bcSubject" class="cursor-pointer hover:text-purple-600 font-medium text-slate-700 hidden" onclick="backToYears()"></span>
+            <span id="bcYearSeparator" class="hidden"><i class="fa-solid fa-chevron-left text-xs mx-1"></i></span>
+            <span id="bcYear" class="cursor-pointer hover:text-purple-600 font-medium text-slate-700 hidden" onclick="backToCategories()"></span>
+            <span id="bcCategorySeparator" class="hidden"><i class="fa-solid fa-chevron-left text-xs mx-1"></i></span>
+            <span id="bcCategory" class="font-medium text-purple-600 hidden"></span>
+        </div>
+
+        <!-- SEARCH RESULTS VIEW -->
+        <div id="searchResultsSection" class="hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-xl font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-square-poll-horizontal text-purple-600"></i>
+                    <span>نتائج البحث</span>
+                </h2>
+                <button onclick="clearSearch()" class="text-sm text-slate-500 hover:text-red-500"><i class="fa-solid fa-xmark ml-1"></i> إلغاء البحث</button>
+            </div>
+            <div id="searchResultsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Injected via JS -->
+            </div>
+        </div>
+
+        <!-- MAIN STEPPERS VIEW -->
+        <div id="mainNavigationSection">
+            
+            <!-- STEP 1: SUBJECTS -->
+            <div id="stepSubjects">
+                <div class="mb-6">
+                    <div class="text-xs font-extrabold text-purple-600 mb-2">المعرفة تكبر بالمشاركة</div>
+<h1 class="text-2xl md:text-3xl font-black text-slate-900 mb-2 leading-relaxed">كل ما تحتاجه في رحلتك الدراسية، في مكان واحد.</h1>
+                    <p class="text-slate-500 text-sm leading-8">اكتشف التمارين والاختبارات والملخصات التي يشاركها التلاميذ، واستفد من تجارب الآخرين، وساهم بدورك في نشر المعرفة.</p>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="subjectsGrid">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- STEP 2: YEARS -->
+            <div id="stepYears" class="hidden">
+                <div class="mb-6 flex items-center gap-4">
+                    <button onclick="resetNavigation()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shadow-xs">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900" id="selectedSubjectTitle">المادة المختارة</h1>
+                        <p class="text-slate-500 text-xs">اختر السنة الدراسية المناسبة لك.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4" id="yearsGrid">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- STEP 3: CATEGORIES -->
+            <div id="stepCategories" class="hidden">
+                <div class="mb-6 flex items-center gap-4">
+                    <button onclick="backToYears()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shadow-xs">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <div>
+                        <h1 class="text-xl font-bold text-slate-900" id="selectedYearTitle">السنة المختارة</h1>
+                        <p class="text-slate-500 text-xs">اختر نوع المورد التعليمي المطلوب الوصول إليه.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6" id="categoriesGrid">
+                    <!-- Injected via JS -->
+                </div>
+            </div>
+
+            <!-- STEP 4: RESOURCES LIST -->
+            <div id="stepResources" class="hidden">
+                <div class="mb-6 flex items-center justify-between flex-wrap gap-4">
+                    <div class="flex items-center gap-4">
+                        <button onclick="backToCategories()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shadow-xs">
+                            <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-xl font-bold text-slate-900" id="resourceCategoryTitle">قائمة الموارد</h1>
+                            <p class="text-slate-500 text-xs" id="resourceCategorySubtitle">المواد المتوفرة للتحميل والمراجعة.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="resourcesGrid">
+                    <!-- Injected via JS -->
+                </div>
+                <div id="emptyState" class="hidden flex flex-col items-center justify-center py-12 text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200">
+                    <i class="fa-regular fa-folder-open text-5xl mb-3 text-slate-300"></i>
+                    <p class="text-sm font-medium">لا توجد موارد متوفرة في هذا القسم حالياً.</p>
+                    <button onclick="openModal('addResourceModal')" class="mt-4 text-xs bg-purple-50 text-purple-600 font-bold px-3 py-2 rounded-xl hover:bg-purple-100 transition-colors">كن أول من يضيف مورداً!</button>
+                </div>
+            </div>
+
+        </div>
+
+        <section class="mt-10 bg-white border border-slate-100 rounded-2xl p-6 md:p-8 shadow-sm">
+            <div class="max-w-3xl">
+                <h2 class="text-lg md:text-xl font-black text-slate-900 mb-2">هل لديك مورد دراسي يفيد الآخرين؟</h2>
+                <p class="text-sm text-slate-500 leading-8 mb-4">شارك صورة واضحة أو ملفاً، واكتب المادة والمستوى ليصل إلى التلاميذ المناسبين.</p>
+                <button onclick="openModal('addResourceModal')" class="bg-purple-600 hover:bg-purple-700 text-white font-bold px-5 py-3 rounded-xl transition-all shadow-sm">شارك مورداً الآن</button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-100 mt-12 py-6 text-center text-xs text-slate-400">
+        <p class="font-bold text-slate-700 mb-1">مِداد</p>
+<p>نتعلّم ونتشارك المعرفة لننجح معاً.</p>
+<p class="mt-2">نسخة تجريبية محلية · صُممت لخدمة التلاميذ</p>
+    </footer>
+
+    <!-- RESOURCE DETAILS MODAL -->
+    <div id="detailsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs hidden animate-fade-in">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden transform transition-all border border-slate-100">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-start">
+                <div>
+                    <span id="modalBadge" class="text-[10px] font-bold px-2 py-1 rounded-md bg-purple-50 text-purple-600 uppercase tracking-wide">نوع المورد</span>
+                    <h3 id="modalTitle" class="text-lg font-bold text-slate-900 mt-2">عنوان المورد التعليمي</h3>
+                </div>
+                <button onclick="closeModal('detailsModal')" class="w-8 h-8 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div class="grid grid-cols-2 gap-4 text-sm bg-slate-50 p-4 rounded-xl">
+                    <div>
+                        <span class="block text-xs text-slate-400 mb-1">المادة الدراسية</span>
+                        <span id="modalSubject" class="font-medium text-slate-700">الرياضيات</span>
+                    </div>
+                    <div>
+                        <span class="block text-xs text-slate-400 mb-1">السنة الدراسية</span>
+                        <span id="modalYear" class="font-medium text-slate-700">السنة الأولى ثانوي</span>
+                    </div>
+                </div>
+                <div>
+                    <span class="block text-xs text-slate-400 mb-1">وصف المورد أو المحتويات</span>
+                    <p id="modalDesc" class="text-sm text-slate-600 leading-relaxed bg-white border border-slate-100 p-3 rounded-xl">لا يوجد وصف متاح لهذا المورد حالياً.</p>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-400">
+                    <span><i class="fa-regular fa-user ml-1"></i> بواسطة: <span id="modalAuthor" class="text-slate-600 font-medium">أستاذ المادة</span></span>
+                    <span>•</span>
+                    <span><i class="fa-regular fa-calendar ml-1"></i> <span id="modalDate">2026-11-06</span></span>
+                </div>
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex gap-3">
+                <a id="modalViewBtn" href="#" target="_blank" rel="noopener noreferrer" class="flex-1 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium text-center py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-regular fa-eye"></i>
+                    <span>عرض</span>
+                </a>
+                <a id="modalDownloadBtn" href="#" download target="_blank" rel="noopener noreferrer" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium text-center py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm">
+                    <i class="fa-solid fa-download"></i>
+                    <span>تحميل</span>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADD RESOURCE MODAL -->
+    <!-- Authentication Modal -->
+    <div id="authModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-sm hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div>
+                    <h3 class="font-black text-slate-900">حساب مِداد</h3>
+                    <p class="text-xs text-slate-500 mt-1">سجّل الدخول أو أنشئ حساباً جديداً</p>
+                </div>
+                <button type="button" onclick="closeModal('authModal')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="authForm" class="p-6 space-y-4">
+                <div id="authNameWrap" class="hidden">
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">الاسم الظاهر</label>
+                    <input id="authName" type="text" maxlength="60" autocomplete="name" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="اسمك في مداد">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">البريد الإلكتروني</label>
+                    <input id="authEmail" type="email" required autocomplete="email" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="name@example.com">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 mb-1.5">كلمة المرور</label>
+                    <input id="authPassword" type="password" minlength="8" required autocomplete="current-password" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-3 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" placeholder="8 أحرف على الأقل">
+                </div>
+                <p id="authMessage" class="hidden text-xs rounded-xl p-3" role="status"></p>
+                <button id="authSubmit" type="submit" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 rounded-xl transition-colors">تسجيل الدخول</button>
+                <div class="flex flex-wrap justify-between gap-2 text-xs">
+                    <button id="authModeToggle" type="button" class="text-purple-700 font-bold">إنشاء حساب جديد</button>
+                    <button id="authReset" type="button" class="text-slate-500 hover:text-purple-700">نسيت كلمة المرور؟</button>
+                </div>
+            </form>
+            <div id="accountPanel" class="hidden p-6 space-y-4">
+                <div class="rounded-xl bg-purple-50 p-4">
+                    <p id="accountName" class="font-black text-slate-800"></p>
+                    <p id="accountEmail" class="text-xs text-slate-500 mt-1"></p>
+                    <span id="accountRole" class="inline-flex mt-3 text-xs font-bold px-3 py-1 rounded-full bg-white text-purple-700"></span>
+                </div>
+                <button id="authSignOut" type="button" class="w-full border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold py-3 rounded-xl">تسجيل الخروج</button>
+            </div>
+            <p class="px-6 pb-5 text-[10px] leading-5 text-slate-400">لا تشارك كلمة المرور مع أي شخص. لن نطلب منك أبداً مفتاحاً سرياً أو كلمة مرور حسابك.</p>
+        </div>
+    </div>
+
+    <div id="addResourceModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs hidden">
+        <div class="bg-white w-full max-w-xl rounded-2xl shadow-xl overflow-hidden transform transition-all border border-slate-100 max-h-[90vh] flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 class="font-bold text-slate-900 flex items-center gap-2">
+                    <i class="fa-solid fa-circle-plus text-purple-600"></i>
+                    <span>إضافة مورد إلى المكتبة</span>
+                </h3>
+                <button onclick="closeModal('addResourceModal')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors shadow-xs">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <form id="addResourceForm" onsubmit="submitNewResource(event)" class="p-6 space-y-4 overflow-y-auto flex-1">
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5">عنوان المورد *</label>
+                    <input type="text" required id="formTitle" placeholder="اكتب عنوان المورد الدراسي..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5">المادة *</label>
+                        <select required id="formSubject" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
+                            <!-- Populated dynamically via JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5">السنة الدراسية *</label>
+                        <select required id="formYear" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
+                            <!-- Populated dynamically via JS -->
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-1.5">نوع القسم *</label>
+                        <select required id="formCategory" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
+                            <option value="summaries">الملخصات</option>
+                            <option value="exams">الفروض والاختبارات</option>
+                            <option value="exercises">التمارين</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5">اسم المساهم / الأستاذ</label>
+                    <input type="text" id="formAuthor" placeholder="اسم المساهم (اختياري)" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5">رفع الملف أو الصورة *</label>
+                    <input type="file" required id="formFile" accept=".pdf,.png,.jpg,.jpeg,.webp,.gif,.bmp,.doc,.docx,.ppt,.pptx,application/pdf,image/*" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
+                    <p class="text-[11px] text-slate-400 mt-1">اختر ملفاً من جهازك: PDF أو صورة أو Word أو PowerPoint.</p>
+                    <p id="formFileName" class="text-xs text-purple-700 mt-2 hidden"></p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 mb-1.5">وصف قصير</label>
+                    <textarea id="formDesc" rows="3" placeholder="وصف مختصر للمورد..." class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all"></textarea>
+                </div>
+
+                <div class="pt-2 border-t border-slate-100 flex justify-end gap-3">
+                    <button type="button" onclick="closeModal('addResourceModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-600 font-medium px-4 py-2 rounded-xl transition-all text-sm">إلغاء</button>
+                    <button type="submit" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-5 py-2 rounded-xl transition-all shadow-xs text-sm">حفظ ونشر المورد</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <!-- PERSONAL FILE UPLOAD MODAL -->
+    <div id="filesModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs hidden">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden border border-slate-100 max-h-[92vh] flex flex-col">
+            <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <div>
+                    <h3 class="font-black text-slate-900 flex items-center gap-2"><i class="fa-solid fa-folder-open text-indigo-600"></i> ملفاتي الدراسية</h3>
+                    <p class="text-xs text-slate-500 mt-1">ارفع ملفاتك واحتفظ بها في هذا المتصفح.</p>
+                </div>
+                <button onclick="closeModal('filesModal')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="p-5 overflow-y-auto space-y-5">
+                <div class="rounded-2xl border-2 border-dashed border-indigo-200 bg-indigo-50/60 p-5 text-center">
+                    <div class="w-12 h-12 mx-auto rounded-2xl bg-white text-indigo-600 flex items-center justify-center text-xl shadow-sm mb-3"><i class="fa-solid fa-file-arrow-up"></i></div>
+                    <h4 class="font-bold text-slate-800 mb-1">أضف ملفاتك الدراسية</h4>
+                    <p class="text-xs text-slate-500 mb-4">PDF وWord والصور وملفات PowerPoint وغيرها</p>
+                    <input id="personalFilesInput" type="file" multiple class="hidden" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.txt,.jpg,.jpeg,.png,.webp">
+                    <button type="button" onclick="document.getElementById('personalFilesInput').click()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm transition-all shadow-sm">
+                        <i class="fa-solid fa-plus ml-1"></i> اختر الملفات
+                    </button>
+                    <p id="uploadStatus" class="text-xs text-slate-500 mt-3" aria-live="polite">يمكنك اختيار أكثر من ملف في المرة الواحدة.</p>
+                </div>
+                <div class="flex items-center justify-between gap-3">
+                    <h4 class="font-bold text-slate-800">الملفات المحفوظة</h4>
+                    <span id="personalFilesCount" class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-lg">0 ملف</span>
+                </div>
+                <div id="personalFilesList" class="space-y-2">
+                    <div class="text-center text-sm text-slate-400 py-7 bg-slate-50 rounded-xl">جارٍ تحميل الملفات...</div>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-6 bg-amber-50 border border-amber-100 rounded-xl p-3">
+                    <i class="fa-solid fa-circle-info text-amber-500 ml-1"></i>
+                    تُحفظ الملفات على هذا الجهاز وفي هذا المتصفح فقط. لن تظهر تلقائياً على جهاز آخر، وقد تُحذف إذا مُسحت بيانات المتصفح.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- APP LOGIC & JAVASCRIPT -->
+    <script>
+        // Core Static Data requested by user
+        const subjects = [
+            { id: 'math', name: 'الرياضيات', icon: 'fa-calculator', color: 'from-amber-400 to-orange-500' },
+            { id: 'arabic', name: 'اللغة العربية', icon: 'fa-book-open', color: 'from-emerald-400 to-teal-500' },
+            { id: 'french', name: 'اللغة الفرنسية', icon: 'fa-language', color: 'from-blue-400 to-indigo-500' },
+            { id: 'english', name: 'اللغة الإنجليزية', icon: 'fa-globe', color: 'from-purple-400 to-pink-500' },
+            { id: 'languages', name: 'اللغات عامة', icon: 'fa-comments', color: 'from-rose-400 to-red-500' },
+            { id: 'sciences', name: 'علوم الطبيعة والحياة', icon: 'fa-dna', color: 'from-green-400 to-emerald-600' },
+            { id: 'physics', name: 'الفيزياء', icon: 'fa-atom', color: 'from-cyan-400 to-sky-500' },
+            { id: 'islamic', name: 'التربية الإسلامية', icon: 'fa-mosque', color: 'from-teal-500 to-green-600' },
+            { id: 'philosophy', name: 'الفلسفة', icon: 'fa-brain', color: 'from-violet-400 to-fuchsia-600' },
+            { id: 'history_geo', name: 'التاريخ والجغرافيا', icon: 'fa-map-location-dot', color: 'from-orange-400 to-amber-600' }
+        ];
+
+        const years = [
+            { id: 'y1', name: 'السنة الأولى ثانوي' },
+            { id: 'y2', name: 'السنة الثانية ثانوي' },
+            { id: 'y3', name: 'السنة الثالثة ثانوي (بكالوريا)' }
+        ];
+
+        const categories = [
+            { id: 'summaries', name: 'الملخصات', icon: 'fa-file-invoice', desc: 'ملخصات ذكية ومركزة لحفظ وفهم الدروس بسرعة', count: 0, badgeColor: 'bg-emerald-50 text-emerald-600' },
+            { id: 'exams', name: 'الفروض والاختبارات', icon: 'fa-file-signature', desc: 'نماذج امتحانات فصلية مصححة للتدرب المثالي', count: 0, badgeColor: 'bg-amber-50 text-amber-600' },
+            { id: 'exercises', name: 'التمارين', icon: 'fa-pen-to-square', desc: 'سلاسل تمارين متنوعة متدرجة الصعوبة مع الحلول', count: 0, badgeColor: 'bg-sky-50 text-sky-600' }
+        ];
+
+        // Resources list (starts empty: resources are added by contributors)
+        let resources = [];
+
+        // Application State
+        let currentSelection = {
+            subject: null,
+            year: null,
+            category: null
+        };
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            renderSubjects();
+            populateFormDropdowns();
+        });
+
+        // 1. Render Subject Cards
+        function renderSubjects() {
+            const grid = document.getElementById('subjectsGrid');
+            grid.innerHTML = '';
+            subjects.forEach(sub => {
+                const card = document.createElement('div');
+                card.className = "card-pop bg-white p-5 rounded-2xl border border-slate-100 shadow-xs cursor-pointer flex flex-col items-center text-center gap-3 group";
+                card.onclick = () => selectSubject(sub);
+                card.innerHTML = `
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${sub.color} flex items-center justify-center text-white text-xl shadow-xs group-hover:scale-110 transition-transform">
+                        <i class="fa-solid ${sub.icon}"></i>
+                    </div>
+                    <span class="font-bold text-sm text-slate-700 group-hover:text-purple-600 transition-colors">${sub.name}</span>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 2. Step 1 -> Step 2: Subject Selected
+        function selectSubject(subject) {
+            currentSelection.subject = subject;
+            
+            // UI Indicators updates
+            document.getElementById('selectedSubjectTitle').innerText = subject.name;
+            
+            // Progress Indicator Update
+            const bcSub = document.getElementById('bcSubject');
+            bcSub.innerText = subject.name;
+            bcSub.classList.remove('hidden');
+            document.getElementById('bcSubjectSeparator').classList.remove('hidden');
+            document.getElementById('navigationBreadcrumb').classList.remove('hidden');
+
+            // Render Years Screen
+            renderYears();
+
+            // Toggle Screens
+            document.getElementById('stepSubjects').classList.add('hidden');
+            document.getElementById('stepYears').classList.remove('hidden');
+        }
+
+        // Render Years List
+        function renderYears() {
+            const grid = document.getElementById('yearsGrid');
+            grid.innerHTML = '';
+            years.forEach(yr => {
+                const card = document.createElement('div');
+                card.className = "card-pop bg-white p-4 rounded-xl border border-slate-100 shadow-xs cursor-pointer flex items-center justify-between group";
+                card.onclick = () => selectYear(yr);
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center text-xs">
+                            <i class="fa-solid fa-graduation-cap"></i>
+                        </div>
+                        <span class="font-medium text-sm text-slate-700 group-hover:text-purple-600 transition-colors">${yr.name}</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-left text-xs text-slate-300 group-hover:text-purple-500 transition-colors"></i>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 3. Step 2 -> Step 3: Year Selected
+        function selectYear(year) {
+            currentSelection.year = year;
+            
+            document.getElementById('selectedYearTitle').innerText = `${currentSelection.subject.name} ⟵ ${year.name}`;
+            
+            // Update Breadcrumbs
+            const bcYr = document.getElementById('bcYear');
+            bcYr.innerText = year.name;
+            bcYr.classList.remove('hidden');
+            document.getElementById('bcYearSeparator').classList.remove('hidden');
+
+            // Render Categories
+            renderCategories();
+
+            // Toggle Screens
+            document.getElementById('stepYears').classList.add('hidden');
+            document.getElementById('stepCategories').classList.remove('hidden');
+        }
+
+        // Render Resource Categories
+        function renderCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            grid.innerHTML = '';
+            
+            categories.forEach(cat => {
+                // Calculate counts dynamically
+                const matchingCount = resources.filter(r => 
+                    r.subjectId === currentSelection.subject.id && 
+                    r.yearId === currentSelection.year.id && 
+                    r.categoryId === cat.id
+                ).length;
+
+                const card = document.createElement('div');
+                card.className = "card-pop bg-white p-6 rounded-2xl border border-slate-100 shadow-xs cursor-pointer flex flex-col justify-between group relative overflow-hidden";
+                card.onclick = () => selectCategory(cat);
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-lg">
+                                <i class="fa-solid ${cat.icon}"></i>
+                            </div>
+                            <span class="text-[11px] font-bold px-2 py-1 rounded-md ${cat.badgeColor}">${matchingCount} مورد</span>
+                        </div>
+                        <h3 class="font-bold text-base text-slate-800 mb-1 group-hover:text-purple-600 transition-colors">${cat.name}</h3>
+                        <p class="text-xs text-slate-400 leading-relaxed">${cat.desc}</p>
+                    </div>
+                    <div class="mt-4 pt-3 border-t border-slate-50 flex items-center gap-1.5 text-xs text-purple-600 font-bold">
+                        <span>تصفح الآن</span>
+                        <i class="fa-solid fa-arrow-left text-[10px] transform group-hover:-translate-x-1 transition-transform"></i>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // 4. Step 3 -> Step 4: Category Selected (Show specific resources)
+        function selectCategory(category) {
+            currentSelection.category = category;
+            
+            document.getElementById('resourceCategoryTitle').innerText = category.name;
+            document.getElementById('resourceCategorySubtitle').innerText = `${currentSelection.subject.name} • ${currentSelection.year.name}`;
+            
+            // Update Breadcrumbs
+            const bcCat = document.getElementById('bcCategory');
+            bcCat.innerText = category.name;
+            bcCat.classList.remove('hidden');
+            document.getElementById('bcCategorySeparator').classList.remove('hidden');
+
+            // Filter and Render Resources
+            renderResourcesList();
+
+            // Toggle Screens
+            document.getElementById('stepCategories').classList.add('hidden');
+            document.getElementById('stepResources').classList.remove('hidden');
+        }
+
+        // Render final resource cards list
+        function renderResourcesList() {
+            const grid = document.getElementById('resourcesGrid');
+            const emptyState = document.getElementById('emptyState');
+            grid.innerHTML = '';
+            
+            const filtered = resources.filter(r => 
+                r.subjectId === currentSelection.subject.id && 
+                r.yearId === currentSelection.year.id && 
+                r.categoryId === currentSelection.category.id
+            );
+
+            if(filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                grid.classList.add('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                grid.classList.remove('hidden');
+                
+                filtered.forEach(res => {
+                    const card = createResourceCard(res);
+                    grid.appendChild(card);
+                });
+            }
+        }
+
+        // Helper function to build a resource card element
+        // ---- Link helpers: safe URL + view/download links (Google Drive aware) ----
+        function esc(t) {
+            return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+        }
+        function safeUrl(u) {
+            u = String(u || '').trim();
+            return /^(https?:\/\/|data:(image|application\/pdf)|blob:)/i.test(u) ? u : '#';
+        }
+        function driveId(u) {
+            const m = u.match(/drive\.google\.com\/(?:file\/d\/|open\?id=|uc\?(?:[^#]*&)?id=)([\w-]+)/i);
+            return m ? m[1] : null;
+        }
+        function viewUrl(u) {
+            u = safeUrl(u);
+            const id = driveId(u);
+            return id ? 'https://drive.google.com/file/d/' + id + '/view' : u;
+        }
+        function downloadUrl(u) {
+            u = safeUrl(u);
+            const id = driveId(u);
+            return id ? 'https://drive.google.com/uc?export=download&id=' + id : u;
+        }
+
+        function createResourceCard(res) {
+            const card = document.createElement('div');
+            card.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex flex-col justify-between hover:border-purple-200 transition-all group";
+            
+            // Find Subject & Category metadata names
+            const subName = subjects.find(s => s.id === res.subjectId)?.name || '';
+            const catName = categories.find(c => c.id === res.categoryId)?.name || '';
+            
+            card.innerHTML = `
+                <div>
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-sm bg-slate-50 text-slate-500">${esc(subName)}</span>
+                        <span class="text-[10px] text-slate-400"><i class="fa-regular fa-calendar ml-1"></i>${esc(res.date)}</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-slate-800 line-clamp-2 mb-2 group-hover:text-purple-600 transition-colors cursor-pointer" onclick="viewResourceDetails('${esc(res.id)}')">${esc(res.title)}</h4>
+                    <p class="text-xs text-slate-400 line-clamp-2 mb-4">${esc(res.desc) || 'لا يوجد وصف متاح.'}</p>
+                </div>
+                <div class="pt-3 border-t border-slate-50 text-xs">
+                    <div class="text-slate-400 truncate mb-1"><i class="fa-regular fa-user ml-1"></i>${esc(res.author) || 'مجهول'}</div>
+                    ${res.fileName ? `<div class="text-[10px] text-purple-600 truncate mb-3"><i class="fa-regular fa-paperclip ml-1"></i>${esc(res.fileName)}</div>` : '<div class="mb-3"></div>'}
+                    <div class="grid grid-cols-2 gap-2">
+                        <a href="${esc(viewUrl(res.url))}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium py-2 rounded-lg transition-colors text-[12px]">
+                            <i class="fa-regular fa-eye text-[12px]"></i><span>عرض</span>
+                        </a>
+                        <a href="${esc(downloadUrl(res.url))}" download target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 rounded-lg transition-colors text-[12px]">
+                            <i class="fa-solid fa-download text-[12px]"></i><span>تحميل</span>
+                        </a>
+                    </div>
+                </div>
+            `;
+            const canDelete = window.medadCurrentUser && (
+                res.ownerId === window.medadCurrentUser.id ||
+                window.medadCurrentProfile?.role === 'admin'
+            );
+            if (canDelete) {
+                const actions = card.querySelector('.pt-3.border-t');
+                const deleteButton = document.createElement('button');
+                deleteButton.type = 'button';
+                deleteButton.className = 'mt-2 w-full py-2 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold transition-colors';
+                deleteButton.innerHTML = '<i class="fa-regular fa-trash-can ml-1"></i> حذف المورد';
+                deleteButton.addEventListener('click', () => deletePublishedResource(res));
+                actions.appendChild(deleteButton);
+            }
+            return card;
+        }
+
+        // 5. Back Navigation Handlers
+        function resetNavigation() {
+            currentSelection = { subject: null, year: null, category: null };
+            
+            // Clear breadcrumbs UI
+            document.getElementById('navigationBreadcrumb').classList.add('hidden');
+            document.getElementById('bcSubject').classList.add('hidden');
+            document.getElementById('bcSubjectSeparator').classList.add('hidden');
+            document.getElementById('bcYear').classList.add('hidden');
+            document.getElementById('bcYearSeparator').classList.add('hidden');
+            document.getElementById('bcCategory').classList.add('hidden');
+            document.getElementById('bcCategorySeparator').classList.add('hidden');
+
+            // Screens views toggles
+            document.getElementById('stepSubjects').classList.remove('hidden');
+            document.getElementById('stepYears').classList.add('hidden');
+            document.getElementById('stepCategories').classList.add('hidden');
+            document.getElementById('stepResources').classList.add('hidden');
+            clearSearch();
+        }
+
+        function backToYears() {
+            currentSelection.year = null;
+            currentSelection.category = null;
+            
+            document.getElementById('bcYear').classList.add('hidden');
+            document.getElementById('bcYearSeparator').classList.add('hidden');
+            document.getElementById('bcCategory').classList.add('hidden');
+            document.getElementById('bcCategorySeparator').classList.add('hidden');
+
+            document.getElementById('stepYears').classList.remove('hidden');
+            document.getElementById('stepCategories').classList.add('hidden');
+            document.getElementById('stepResources').classList.add('hidden');
+        }
+
+        function backToCategories() {
+            currentSelection.category = null;
+            
+            document.getElementById('bcCategory').classList.add('hidden');
+            document.getElementById('bcCategorySeparator').classList.add('hidden');
+
+            renderCategories();
+            document.getElementById('stepCategories').classList.remove('hidden');
+            document.getElementById('stepResources').classList.add('hidden');
+        }
+
+        // 6. Global Search Logic
+        function handleSearch(query) {
+            const trimmed = query.trim().toLowerCase();
+            const searchResultsSection = document.getElementById('searchResultsSection');
+            const mainNavigationSection = document.getElementById('mainNavigationSection');
+            const grid = document.getElementById('searchResultsGrid');
+            
+            if(trimmed.length === 0) {
+                clearSearch();
+                return;
+            }
+
+            // Sync inputs values
+            document.getElementById('globalSearch').value = query;
+            document.getElementById('globalSearchMobile').value = query;
+
+            searchResultsSection.classList.remove('hidden');
+            mainNavigationSection.classList.add('hidden');
+            grid.innerHTML = '';
+
+            const matches = resources.filter(res => 
+                res.title.toLowerCase().includes(trimmed) || 
+                (res.desc && res.desc.toLowerCase().includes(trimmed)) ||
+                (res.author && res.author.toLowerCase().includes(trimmed))
+            );
+
+            if(matches.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-full flex flex-col items-center justify-center py-12 text-slate-400 bg-white rounded-2xl border border-slate-100">
+                        <i class="fa-solid fa-magnifying-glass-minus text-4xl mb-3 text-slate-300"></i>
+                        <p class="text-sm font-medium">عذراً، لم نجد أي مورد يطابق كلمة البحث.</p>
+                    </div>
+                `;
+            } else {
+                matches.forEach(res => {
+                    grid.appendChild(createResourceCard(res));
+                });
+            }
+        }
+
+        function clearSearch() {
+            document.getElementById('globalSearch').value = '';
+            document.getElementById('globalSearchMobile').value = '';
+            document.getElementById('searchResultsSection').classList.add('hidden');
+            document.getElementById('mainNavigationSection').classList.remove('hidden');
+        }
+
+        // 7. Modal Open & Close Functions
+        function openModal(id) {
+            if (id === 'addResourceModal' && !window.medadCurrentUser) {
+                openAuthModal();
+                return;
+            }
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        // View Resource Specific Details
+        function viewResourceDetails(id) {
+            const res = resources.find(r => r.id === id);
+            if(!res) return;
+
+            const subName = subjects.find(s => s.id === res.subjectId)?.name || '';
+            const yrName = years.find(y => y.id === res.yearId)?.name || '';
+            const catName = categories.find(c => c.id === res.categoryId)?.name || '';
+
+            document.getElementById('modalTitle').innerText = res.title;
+            document.getElementById('modalBadge').innerText = catName;
+            document.getElementById('modalSubject').innerText = subName;
+            document.getElementById('modalYear').innerText = yrName;
+            document.getElementById('modalDesc').innerText = res.desc || 'لا يوجد وصف تفصيلي متاح.';
+            document.getElementById('modalAuthor').innerText = res.author || 'أحد فاعلي الخير';
+            document.getElementById('modalDate').innerText = res.date;
+            document.getElementById('modalViewBtn').href = viewUrl(res.url);
+            document.getElementById('modalDownloadBtn').href = downloadUrl(res.url);
+
+            openModal('detailsModal');
+        }
+
+        // 8. Populate Form Select elements
+        function populateFormDropdowns() {
+            const subSelect = document.getElementById('formSubject');
+            const yrSelect = document.getElementById('formYear');
+            
+            subjects.forEach(s => {
+                subSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+
+            years.forEach(y => {
+                yrSelect.innerHTML += `<option value="${y.id}">${y.name}</option>`;
+            });
+        }
+
+        // Show the selected attachment name in the resource form.
+        document.getElementById('formFile').addEventListener('change', function () {
+            const label = document.getElementById('formFileName');
+            if (this.files && this.files[0]) {
+                label.textContent = 'الملف المختار: ' + this.files[0].name;
+                label.classList.remove('hidden');
+            } else {
+                label.textContent = '';
+                label.classList.add('hidden');
+            }
+        });
+
+        // 9. Publish resources to Supabase Storage and the resources table.
+        async function submitNewResource(event) {
+            event.preventDefault();
+            if (!window.medadCurrentUser) {
+                closeModal('addResourceModal');
+                openAuthModal();
+                return;
+            }
+            if (!medadSupabase) {
+                alert('تعذر الاتصال بقاعدة البيانات. تحقق من إعدادات Supabase.');
+                return;
+            }
+
+            const selectedFile = document.getElementById('formFile').files[0];
+            if (!selectedFile) { alert('يرجى اختيار ملف أو صورة أولاً.'); return; }
+            const allowedExtensions = /\.(pdf|png|jpe?g|webp|gif|bmp|docx?|pptx?)$/i;
+            if (!allowedExtensions.test(selectedFile.name)) {
+                alert('نوع الملف غير مدعوم. اختر PDF أو صورة أو Word أو PowerPoint.'); return;
+            }
+            if (selectedFile.size > 20 * 1024 * 1024) {
+                alert('حجم الملف يتجاوز 20 ميغابايت. اختر ملفاً أصغر.'); return;
+            }
+
+            const submitButton = document.querySelector('#addResourceForm button[type="submit"]');
+            const originalText = submitButton.textContent;
+            submitButton.disabled = true;
+            submitButton.textContent = 'جارٍ رفع المورد...';
+            let uploadedPath = null;
+            try {
+                const safeName = selectedFile.name.replace(/[^\w.\-()\u0600-\u06FF ]/g, '_');
+                uploadedPath = `${window.medadCurrentUser.id}/${Date.now()}-${safeName}`;
+                const { error: uploadError } = await medadSupabase.storage
+                    .from('medad-files')
+                    .upload(uploadedPath, selectedFile, {
+                        cacheControl: '3600',
+                        upsert: false,
+                        contentType: selectedFile.type || 'application/octet-stream'
+                    });
+                if (uploadError) throw uploadError;
+
+                const publicResult = medadSupabase.storage.from('medad-files').getPublicUrl(uploadedPath);
+                const payload = {
+                    owner_id: window.medadCurrentUser.id,
+                    title: document.getElementById('formTitle').value.trim(),
+                    subject_id: document.getElementById('formSubject').value,
+                    year_id: document.getElementById('formYear').value,
+                    category_id: document.getElementById('formCategory').value,
+                    author: document.getElementById('formAuthor').value.trim() || window.medadCurrentProfile?.display_name || 'مساهم متطوع',
+                    file_name: selectedFile.name,
+                    file_path: uploadedPath,
+                    description: document.getElementById('formDesc').value.trim()
+                };
+                const { data, error: insertError } = await medadSupabase
+                    .from('resources').insert(payload).select().single();
+                if (insertError) throw insertError;
+
+                const newRes = mapMedadResource(data, publicResult.data.publicUrl);
+                resources.unshift(newRes);
+                document.getElementById('addResourceForm').reset();
+                document.getElementById('formFileName').textContent = '';
+                document.getElementById('formFileName').classList.add('hidden');
+                closeModal('addResourceModal');
+                alert('تم رفع المورد ونشره في مكتبة مِداد بنجاح.');
+                if (currentSelection.subject && currentSelection.year && currentSelection.category) {
+                    if (currentSelection.subject.id === newRes.subjectId && currentSelection.year.id === newRes.yearId && currentSelection.category.id === newRes.categoryId) renderResourcesList();
+                    else renderCategories();
+                } else {
+                    renderCategories();
+                }
+            } catch (error) {
+                if (uploadedPath) {
+                    await medadSupabase.storage.from('medad-files').remove([uploadedPath]).catch(() => {});
+                }
+                console.error('Medad resource publish failed:', error);
+                alert('تعذر نشر المورد: ' + (error.message || 'حدث خطأ غير معروف'));
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        }
+
+        function mapMedadResource(row, publicUrl) {
+            const url = publicUrl || medadSupabase.storage.from('medad-files').getPublicUrl(row.file_path).data.publicUrl;
+            return {
+                id: row.id,
+                ownerId: row.owner_id,
+                filePath: row.file_path,
+                title: row.title,
+                subjectId: row.subject_id,
+                yearId: row.year_id,
+                categoryId: row.category_id,
+                author: row.author || 'مساهم متطوع',
+                url,
+                fileName: row.file_name,
+                desc: row.description || '',
+                date: row.created_at ? new Date(row.created_at).toLocaleDateString('ar-DZ') : ''
+            };
+        }
+
+        async function loadMedadResources() {
+            if (!medadSupabase) return;
+            const { data, error } = await medadSupabase.from('resources').select('*').order('created_at', { ascending: false });
+            if (error) {
+                console.error('Medad resources load failed:', error.message);
+                return;
+            }
+            resources = (data || []).map(row => mapMedadResource(row));
+            renderCategories();
+            if (currentSelection.subject && currentSelection.year && currentSelection.category) renderResourcesList();
+            const search = document.getElementById('globalSearch')?.value || document.getElementById('globalSearchMobile')?.value || '';
+            if (search.trim()) handleSearch(search);
+        }
+
+        async function deletePublishedResource(resource) {
+            const isAdmin = window.medadCurrentProfile?.role === 'admin';
+            const isOwner = resource.ownerId === window.medadCurrentUser?.id;
+            if (!isAdmin && !isOwner) { alert('لا تملك صلاحية حذف هذا المورد.'); return; }
+            if (!confirm('هل تريد حذف المورد «' + resource.title + '» نهائياً؟')) return;
+            try {
+                const { error: storageError } = await medadSupabase.storage.from('medad-files').remove([resource.filePath || '']);
+                if (storageError) throw storageError;
+                const { error: rowError } = await medadSupabase.from('resources').delete().eq('id', resource.id);
+                if (rowError) throw rowError;
+                resources = resources.filter(item => item.id !== resource.id);
+                renderCategories();
+                if (currentSelection.subject && currentSelection.year && currentSelection.category) renderResourcesList();
+                alert('تم حذف المورد.');
+            } catch (error) {
+                console.error('Medad resource delete failed:', error);
+                alert('تعذر حذف المورد: ' + (error.message || 'حدث خطأ غير معروف'));
+            }
+        }
+
+        // Personal file storage (IndexedDB keeps file data locally in this browser).
+        const MEDAD_FILES_DB = 'medad_personal_files';
+        const MEDAD_FILES_STORE = 'files';
+
+        function openFilesDatabase() {
+            return new Promise((resolve, reject) => {
+                if (!('indexedDB' in window)) {
+                    reject(new Error('هذا المتصفح لا يدعم التخزين المحلي للملفات.'));
+                    return;
+                }
+                const request = indexedDB.open(MEDAD_FILES_DB, 1);
+                request.onupgradeneeded = () => {
+                    const db = request.result;
+                    if (!db.objectStoreNames.contains(MEDAD_FILES_STORE)) {
+                        db.createObjectStore(MEDAD_FILES_STORE, { keyPath: 'id', autoIncrement: true });
+                    }
+                };
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error || new Error('تعذر فتح مساحة حفظ الملفات.'));
+            });
+        }
+
+        async function savePersonalFile(file) {
+            const db = await openFilesDatabase();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(MEDAD_FILES_STORE, 'readwrite');
+                const request = tx.objectStore(MEDAD_FILES_STORE).add({
+                    name: file.name,
+                    type: file.type || 'application/octet-stream',
+                    size: file.size,
+                    addedAt: new Date().toISOString(),
+                    blob: file
+                });
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+                tx.oncomplete = () => db.close();
+                tx.onerror = () => { db.close(); reject(tx.error); };
+            });
+        }
+
+        async function getPersonalFiles() {
+            const db = await openFilesDatabase();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(MEDAD_FILES_STORE, 'readonly');
+                const request = tx.objectStore(MEDAD_FILES_STORE).getAll();
+                request.onsuccess = () => resolve(request.result || []);
+                request.onerror = () => reject(request.error);
+                tx.oncomplete = () => db.close();
+                tx.onerror = () => { db.close(); reject(tx.error); };
+            });
+        }
+
+        async function deletePersonalFile(id) {
+            const db = await openFilesDatabase();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(MEDAD_FILES_STORE, 'readwrite');
+                tx.objectStore(MEDAD_FILES_STORE).delete(Number(id));
+                tx.oncomplete = () => { db.close(); resolve(); };
+                tx.onerror = () => { db.close(); reject(tx.error); };
+            });
+        }
+
+        function openFilesModal() {
+            openModal('filesModal');
+            renderPersonalFiles();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' بايت';
+            if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' كيلوبايت';
+            return (bytes / (1024 * 1024)).toFixed(1) + ' ميغابايت';
+        }
+
+        function fileIcon(file) {
+            const name = (file.name || '').toLowerCase();
+            if (name.endsWith('.pdf')) return 'fa-file-pdf text-red-500';
+            if (/\.(doc|docx)$/.test(name)) return 'fa-file-word text-blue-600';
+            if (/\.(ppt|pptx)$/.test(name)) return 'fa-file-powerpoint text-orange-500';
+            if (/\.(xls|xlsx)$/.test(name)) return 'fa-file-excel text-green-600';
+            if (/\.(jpg|jpeg|png|webp)$/.test(name)) return 'fa-file-image text-purple-500';
+            return 'fa-file-lines text-slate-500';
+        }
+
+        async function renderPersonalFiles() {
+            const list = document.getElementById('personalFilesList');
+            const count = document.getElementById('personalFilesCount');
+            list.innerHTML = '<div class="text-center text-sm text-slate-400 py-6">جارٍ تحميل الملفات...</div>';
+            try {
+                const files = await getPersonalFiles();
+                count.textContent = files.length + (files.length === 1 ? ' ملف' : ' ملفات');
+                if (!files.length) {
+                    list.innerHTML = '<div class="text-center text-sm text-slate-400 py-8 bg-slate-50 rounded-xl"><i class="fa-regular fa-folder-open text-3xl mb-2 block text-slate-300"></i>لم ترفع أي ملفات بعد.</div>';
+                    return;
+                }
+                list.innerHTML = '';
+                files.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt)).forEach(file => {
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-3 p-3 rounded-xl border border-slate-100 bg-white hover:border-indigo-200 transition-colors';
+                    const info = document.createElement('div');
+                    info.className = 'min-w-0 flex-1';
+                    const title = document.createElement('p');
+                    title.className = 'text-sm font-bold text-slate-700 truncate';
+                    title.textContent = file.name;
+                    const meta = document.createElement('p');
+                    meta.className = 'text-[11px] text-slate-400 mt-1';
+                    meta.textContent = formatFileSize(file.size) + ' · ' + new Date(file.addedAt).toLocaleDateString('ar-DZ');
+                    info.append(title, meta);
+                    const icon = document.createElement('i');
+                    icon.className = 'fa-solid ' + fileIcon(file).split(' ')[0] + ' text-xl ' + fileIcon(file).split(' ')[1];
+                    const actions = document.createElement('div');
+                    actions.className = 'flex items-center gap-1 shrink-0';
+                    const openBtn = document.createElement('button');
+                    openBtn.className = 'w-9 h-9 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700';
+                    openBtn.title = 'فتح الملف';
+                    openBtn.innerHTML = '<i class="fa-regular fa-eye"></i>';
+                    openBtn.onclick = () => openPersonalFile(file.id);
+                    const downloadBtn = document.createElement('button');
+                    downloadBtn.className = 'w-9 h-9 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700';
+                    downloadBtn.title = 'تحميل الملف';
+                    downloadBtn.innerHTML = '<i class="fa-solid fa-download"></i>';
+                    downloadBtn.onclick = () => downloadPersonalFile(file.id);
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'w-9 h-9 rounded-lg bg-red-50 hover:bg-red-100 text-red-600';
+                    deleteBtn.title = 'حذف الملف';
+                    deleteBtn.innerHTML = '<i class="fa-regular fa-trash-can"></i>';
+                    deleteBtn.onclick = () => removePersonalFile(file.id, file.name);
+                    actions.append(openBtn, downloadBtn, deleteBtn);
+                    row.append(icon, info, actions);
+                    list.appendChild(row);
+                });
+            } catch (error) {
+                list.innerHTML = '<div class="text-center text-sm text-red-500 py-6">تعذر الوصول إلى مساحة حفظ الملفات. جرّب فتح الموقع عبر متصفح حديث.</div>';
+                count.textContent = 'غير متاح';
+            }
+        }
+
+        async function findPersonalFile(id) {
+            const files = await getPersonalFiles();
+            return files.find(file => Number(file.id) === Number(id));
+        }
+
+        async function openPersonalFile(id) {
+            try {
+                const file = await findPersonalFile(id);
+                if (!file) return;
+                const url = URL.createObjectURL(file.blob);
+                const tab = window.open(url, '_blank', 'noopener');
+                if (!tab) alert('اسمح بالنوافذ المنبثقة لفتح الملف.');
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            } catch (error) {
+                alert('تعذر فتح الملف.');
+            }
+        }
+
+        async function downloadPersonalFile(id) {
+            try {
+                const file = await findPersonalFile(id);
+                if (!file) return;
+                const url = URL.createObjectURL(file.blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = file.name;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 60000);
+            } catch (error) {
+                alert('تعذر تحميل الملف.');
+            }
+        }
+
+        async function removePersonalFile(id, name) {
+            if (!confirm('هل تريد حذف الملف «' + name + '»؟')) return;
+            try {
+                await deletePersonalFile(id);
+                renderPersonalFiles();
+            } catch (error) {
+                alert('تعذر حذف الملف.');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const picker = document.getElementById('personalFilesInput');
+            if (!picker) return;
+            picker.addEventListener('change', async () => {
+                const selected = Array.from(picker.files || []);
+                const status = document.getElementById('uploadStatus');
+                if (!selected.length) return;
+                status.textContent = 'جارٍ حفظ ' + selected.length + ' ملف...';
+                let saved = 0;
+                for (const file of selected) {
+                    try {
+                        await savePersonalFile(file);
+                        saved++;
+                    } catch (error) {
+                        console.error('File save failed:', error);
+                    }
+                }
+                status.textContent = 'تم حفظ ' + saved + ' من أصل ' + selected.length + ' ملف.';
+                picker.value = '';
+                renderPersonalFiles();
+            });
+        });
+    </script>
+
+
+
+    <script>
+    // ===== Medad authentication (Supabase) =====
+    // Add your Supabase Project URL and anon/public key here. Never use service_role keys in this file.
+    const MEDAD_SUPABASE_URL = 'https://ykoyhiohhpkeggodmeqh.supabase.co';
+    const MEDAD_SUPABASE_ANON_KEY = 'sb_publishable_sbhsMjTPyJSRdyCoiT9KKw_2NpQEhX4';
+    let medadSupabase = null;
+    let medadAuthMode = 'login';
+    window.medadCurrentUser = null;
+    window.medadCurrentProfile = null;
+
+    function medadAuthConfigured() {
+        return MEDAD_SUPABASE_URL.startsWith('https://') &&
+               MEDAD_SUPABASE_ANON_KEY.length > 30 &&
+               !MEDAD_SUPABASE_URL.includes('YOUR_') &&
+               !MEDAD_SUPABASE_ANON_KEY.includes('YOUR_');
+    }
+
+    function authNotice(message, type='error') {
+        const el = document.getElementById('authMessage');
+        if (!el) return;
+        el.textContent = message;
+        el.className = 'text-xs rounded-xl p-3 ' + (type === 'success' ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700');
+    }
+
+    function openAuthModal() {
+        const modal = document.getElementById('authModal');
+        if (!modal) return;
+        const form = document.getElementById('authForm');
+        const panel = document.getElementById('accountPanel');
+        if (window.medadCurrentUser) {
+            form.classList.add('hidden');
+            panel.classList.remove('hidden');
+            const profile = window.medadCurrentProfile || {};
+            document.getElementById('accountName').textContent = profile.display_name || window.medadCurrentUser.user_metadata?.display_name || 'مستخدم مداد';
+            document.getElementById('accountEmail').textContent = window.medadCurrentUser.email || '';
+            document.getElementById('accountRole').textContent = profile.role === 'admin' ? 'مدير المنصة' : 'مستخدم عادي';
+        } else {
+            form.classList.remove('hidden');
+            panel.classList.add('hidden');
+            setAuthMode(medadAuthMode);
+        }
+        modal.classList.remove('hidden');
+    }
+
+    function setAuthMode(mode) {
+        medadAuthMode = mode;
+        const signup = mode === 'signup';
+        document.getElementById('authNameWrap').classList.toggle('hidden', !signup);
+        document.getElementById('authName').required = signup;
+        document.getElementById('authPassword').autocomplete = signup ? 'new-password' : 'current-password';
+        document.getElementById('authSubmit').textContent = signup ? 'إنشاء الحساب' : 'تسجيل الدخول';
+        document.getElementById('authModeToggle').textContent = signup ? 'لدي حساب بالفعل' : 'إنشاء حساب جديد';
+        document.getElementById('authReset').classList.toggle('hidden', signup);
+        document.getElementById('authMessage').classList.add('hidden');
+    }
+
+    function updateAuthButton() {
+        const old = document.getElementById('medadAuthButton');
+        if (old) old.remove();
+        const addBtn = document.querySelector('nav button[onclick*="addResourceModal"]');
+        if (!addBtn) return;
+        const btn = document.createElement('button');
+        btn.id = 'medadAuthButton';
+        btn.type = 'button';
+        btn.className = 'border border-purple-200 bg-white hover:bg-purple-50 text-purple-700 font-bold px-3 py-2 rounded-xl text-sm transition-all';
+        btn.textContent = window.medadCurrentUser ? (window.medadCurrentProfile?.role === 'admin' ? 'مدير المنصة' : 'حسابي') : 'دخول / تسجيل';
+        btn.onclick = openAuthModal;
+        addBtn.parentNode.insertBefore(btn, addBtn);
+    }
+
+    async function loadMedadProfile(user) {
+        window.medadCurrentUser = user || null;
+        window.medadCurrentProfile = null;
+        if (user && medadSupabase) {
+            const { data, error } = await medadSupabase.from('profiles').select('id, display_name, role').eq('id', user.id).maybeSingle();
+            if (!error && data) window.medadCurrentProfile = data;
+            else if (error) console.warn('Medad profile:', error.message);
+        }
+        updateAuthButton();
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        updateAuthButton();
+        document.getElementById('authModeToggle').addEventListener('click', () => setAuthMode(medadAuthMode === 'login' ? 'signup' : 'login'));
+        document.getElementById('authForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            if (!medadAuthConfigured() || !medadSupabase) {
+                authNotice('قبل تفعيل الحسابات، يجب إنشاء مشروع Supabase وإضافة رابط المشروع والمفتاح العام في إعدادات هذا الملف.');
+                return;
+            }
+            const email = document.getElementById('authEmail').value.trim();
+            const password = document.getElementById('authPassword').value;
+            const submit = document.getElementById('authSubmit');
+            submit.disabled = true;
+            submit.textContent = 'جارٍ المعالجة...';
+            try {
+                if (medadAuthMode === 'signup') {
+                    const display_name = document.getElementById('authName').value.trim();
+                    const { data, error } = await medadSupabase.auth.signUp({
+                        email, password,
+                        options: { data: { display_name }, emailRedirectTo: window.location.origin + window.location.pathname }
+                    });
+                    if (error) throw error;
+                    if (data.session) {
+                        await loadMedadProfile(data.user);
+                        closeModal('authModal');
+                        alert('تم إنشاء حسابك وتسجيل الدخول بنجاح.');
+                    } else {
+                        authNotice('تم إنشاء الحساب. افتح بريدك الإلكتروني واضغط رابط التحقق، ثم ارجع إلى مداد وسجّل الدخول.', 'success');
+                    }
+                } else {
+                    const { data, error } = await medadSupabase.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    await loadMedadProfile(data.user);
+                    closeModal('authModal');
+                }
+            } catch (error) {
+                authNotice(error.message || 'تعذر إكمال العملية. تحقق من البيانات وحاول مجدداً.');
+            } finally {
+                submit.disabled = false;
+                submit.textContent = medadAuthMode === 'signup' ? 'إنشاء الحساب' : 'تسجيل الدخول';
+            }
+        });
+        document.getElementById('authReset').addEventListener('click', async () => {
+            if (!medadSupabase) { authNotice('أكمل إعداد Supabase أولاً.'); return; }
+            const email = document.getElementById('authEmail').value.trim();
+            if (!email) { authNotice('اكتب بريدك الإلكتروني أولاً.'); return; }
+            const { error } = await medadSupabase.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + window.location.pathname });
+            if (error) authNotice(error.message);
+            else authNotice('إذا كان البريد مسجلاً، ستصلك رسالة لإعادة تعيين كلمة المرور.', 'success');
+        });
+        document.getElementById('authSignOut').addEventListener('click', async () => {
+            if (!medadSupabase) return;
+            const { error } = await medadSupabase.auth.signOut();
+            if (error) { authNotice(error.message); return; }
+            await loadMedadProfile(null);
+            closeModal('authModal');
+        });
+
+        if (medadAuthConfigured() && window.supabase?.createClient) {
+            medadSupabase = window.supabase.createClient(MEDAD_SUPABASE_URL, MEDAD_SUPABASE_ANON_KEY);
+            const { data: { session } } = await medadSupabase.auth.getSession();
+            await loadMedadProfile(session?.user || null);
+            await loadMedadResources();
+            medadSupabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'SIGNED_OUT') {
+                    // Run follow-up Supabase queries outside the auth callback to avoid lock contention.
+                    queueMicrotask(async () => {
+                        await loadMedadProfile(session?.user || null);
+                        await loadMedadResources();
+                    });
+                }
+            });
+        }
+    });
+    </script>
+
+    <script>
+    (function () {
+        var body = document.body;
+        var intro = document.getElementById('intro');
+        var drop = document.getElementById('introDrop');
+        var logo = document.querySelector('nav .captu');
+        var word = document.querySelector('nav .medad-word');
+
+        function finish() {
+            body.classList.remove('intro-on');
+            if (word) { word.style.opacity = ''; word.style.transition = ''; }
+            if (intro && intro.parentNode) intro.remove();
+            if (drop && drop.parentNode) drop.remove();
+        }
+
+        try {
+            if (!intro || !drop || !logo || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { finish(); return; }
+
+            function fly() {
+                var d = drop.getBoundingClientRect();
+                var t = logo.getBoundingClientRect();
+                var tx = (t.left + t.width / 2) - (d.left + d.width / 2);
+                var ty = (t.top + t.height / 2) - (d.top + d.height / 2);
+                var sc = t.width / d.width;
+                if (word) { word.style.opacity = '0'; word.style.transition = 'opacity .5s ease'; }
+                intro.classList.add('out');
+                var anim = drop.animate(
+                    [{ transform: 'translate(0,0) scale(1)' }, { transform: 'translate(' + tx + 'px,' + ty + 'px) scale(' + sc + ')' }],
+                    { duration: 1100, easing: 'cubic-bezier(.65,0,.25,1)', fill: 'forwards' }
+                );
+                var ended = false;
+                function end() {
+                    if (ended) return; ended = true;
+                    body.classList.remove('intro-on');
+                    if (word) word.style.opacity = '1';
+                    if (intro.parentNode) intro.remove();
+                    if (drop.parentNode) drop.remove();
+                    setTimeout(function () { if (word) { word.style.opacity = ''; word.style.transition = ''; } }, 600);
+                }
+                anim.onfinish = end;
+                setTimeout(end, 1400);
+            }
+
+            var start = function () { setTimeout(fly, 2000); };
+            if (document.readyState === 'complete') start();
+            else window.addEventListener('load', start);
+            setTimeout(function () { if (document.getElementById('intro')) { fly(); } }, 7000);
+        } catch (e) { finish(); }
+    })();
+    </script>
+</body>
+</html>
