@@ -1034,6 +1034,7 @@
             submitButton.disabled = true;
             submitButton.textContent = 'جارٍ رفع المورد...';
             let uploadedPath = null;
+            let resourceInserted = false;
 
             try {
                 const safeName = selectedFile.name.replace(/[^\w.\-()\u0600-\u06FF ]/g, '_');
@@ -1067,6 +1068,7 @@
                 if (!data || !data.id) {
                     throw new Error('تم إرسال المورد إلى قاعدة البيانات لكن لم تُرجع بياناته. نحتاج فحص صلاحية SELECT على جدول resources.');
                 }
+                resourceInserted = true;
 
                 const newRes = mapMedadResource(data, publicResult.data.publicUrl);
                 resources.unshift(newRes);
@@ -1083,11 +1085,15 @@
                     renderCategories();
                 }
             } catch (error) {
-                if (uploadedPath) {
-                    await medadSupabase.storage.from('medad-files').remove([uploadedPath]).catch(() => {});
-                }
+                // Do not automatically delete the uploaded file here:
+                // the database insert may already have succeeded, and deleting it
+                // could leave a resource record pointing to a missing file.
                 console.error('Medad resource publish failed:', error);
-                alert('تعذر نشر المورد: ' + (error.message || 'حدث خطأ غير معروف'));
+                if (resourceInserted) {
+                    alert('تم حفظ المورد، لكن حدث خطأ أثناء تحديث العرض. أعد تحميل الصفحة للتحقق من ظهوره.');
+                } else {
+                    alert('تعذر إكمال نشر المورد: ' + (error.message || 'حدث خطأ غير معروف') + ' إذا ظهر المورد في المكتبة، فلا تعاود نشره مرة أخرى.');
+                }
             } finally {
                 submitButton.disabled = false;
                 submitButton.textContent = originalText;
