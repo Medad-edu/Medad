@@ -1002,11 +1002,16 @@
         // 9. Publish resources to Supabase Storage and the resources table.
         async function submitNewResource(event) {
             event.preventDefault();
-            if (!window.medadCurrentUser) {
+
+            // Capture the signed-in user once so it cannot become null mid-upload.
+            const currentUser = window.medadCurrentUser;
+            if (!currentUser?.id) {
                 closeModal('addResourceModal');
                 openAuthModal();
                 return;
             }
+            const ownerId = currentUser.id;
+
             if (!medadSupabase) {
                 alert('تعذر الاتصال بقاعدة البيانات. تحقق من إعدادات Supabase.');
                 return;
@@ -1027,9 +1032,11 @@
             submitButton.disabled = true;
             submitButton.textContent = 'جارٍ رفع المورد...';
             let uploadedPath = null;
+
             try {
                 const safeName = selectedFile.name.replace(/[^\w.\-()\u0600-\u06FF ]/g, '_');
-                uploadedPath = `${window.medadCurrentUser.id}/${Date.now()}-${safeName}`;
+                uploadedPath = `${ownerId}/${Date.now()}-${safeName}`;
+
                 const { error: uploadError } = await medadSupabase.storage
                     .from('medad-files')
                     .upload(uploadedPath, selectedFile, {
@@ -1041,7 +1048,7 @@
 
                 const publicResult = medadSupabase.storage.from('medad-files').getPublicUrl(uploadedPath);
                 const payload = {
-                    owner_id: window.medadCurrentUser.id,
+                    owner_id: ownerId,
                     title: document.getElementById('formTitle').value.trim(),
                     subject_id: document.getElementById('formSubject').value,
                     year_id: document.getElementById('formYear').value,
@@ -1051,6 +1058,7 @@
                     file_path: uploadedPath,
                     description: document.getElementById('formDesc').value.trim()
                 };
+
                 const { data, error: insertError } = await medadSupabase
                     .from('resources').insert(payload).select().single();
                 if (insertError) throw insertError;
@@ -1062,6 +1070,7 @@
                 document.getElementById('formFileName').classList.add('hidden');
                 closeModal('addResourceModal');
                 alert('تم رفع المورد ونشره في مكتبة مِداد بنجاح.');
+
                 if (currentSelection.subject && currentSelection.year && currentSelection.category) {
                     if (currentSelection.subject.id === newRes.subjectId && currentSelection.year.id === newRes.yearId && currentSelection.category.id === newRes.categoryId) renderResourcesList();
                     else renderCategories();
