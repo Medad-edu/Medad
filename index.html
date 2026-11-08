@@ -84,6 +84,13 @@
         .bg-wave.w2 { opacity:.06; height:110px; animation: waveMove 40s linear infinite reverse; }
         @keyframes waveMove { from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
 
+        /* Feedback button and clear semester selectors */
+        .term-choice-btn,.term-filter-btn{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;padding:10px 12px;border:1px solid #e2e8f0;border-radius:13px;background:#fff;color:#475569;font-size:12px;font-weight:800;transition:all .18s}
+        .term-choice-btn:hover,.term-filter-btn:hover{border-color:#a78bfa;background:#f5f3ff;color:#5b21b6}
+        .term-choice-btn.is-active,.term-filter-btn.is-active{border-color:#7c3aed;background:#ede9fe;color:#5b21b6;box-shadow:0 0 0 2px rgba(124,58,237,.09)}
+        .term-number{display:inline-flex;width:27px;height:27px;align-items:center;justify-content:center;border-radius:9px;background:#f1f5f9;color:#64748b;font-size:10px;font-weight:900}
+        .term-choice-btn.is-active .term-number{background:#7c3aed;color:white}
+
         @media (prefers-reduced-motion: reduce) {
             .captu-body, .captu-shadow, .captu-eyes, .bg-blob, .bg-item, .bg-wave { animation:none !important; }
             .bg-item { opacity:.2; bottom:15%; }
@@ -347,6 +354,16 @@
                         </div>
                     </div>
                 </div>
+                <div id="examTermFilterWrap" class="hidden mb-5 rounded-2xl border border-violet-100 bg-gradient-to-l from-violet-50 to-white p-4">
+                    <div class="mb-3 flex items-center gap-2 text-sm font-black text-slate-800"><i class="fa-solid fa-calendar-days text-violet-600"></i><span>اختر الفصل الدراسي</span></div>
+                    <input type="hidden" id="examTermFilterValue" value="all" />
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="تصفية حسب الفصل">
+                        <button type="button" class="term-filter-btn is-active" data-term="all" onclick="setExamTermFilter('all')">كل الفصول</button>
+                        <button type="button" class="term-filter-btn" data-term="1" onclick="setExamTermFilter('1')">الفصل الأول</button>
+                        <button type="button" class="term-filter-btn" data-term="2" onclick="setExamTermFilter('2')">الفصل الثاني</button>
+                        <button type="button" class="term-filter-btn" data-term="3" onclick="setExamTermFilter('3')">الفصل الثالث</button>
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="resourcesGrid">
                     <!-- Injected via JS -->
                 </div>
@@ -369,11 +386,27 @@
 
     </main>
 
+    <!-- Feedback modal -->
+    <div id="feedbackModal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4 bg-slate-950/50">
+      <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-xl space-y-4">
+        <div class="flex justify-between items-center"><h3 class="font-black text-slate-900">أرسل ملاحظة</h3><button onclick="closeModal('feedbackModal')" class="text-slate-400 text-xl">×</button></div>
+        <form id="feedbackForm" class="space-y-3">
+          <p class="text-xs text-slate-500">اكتب ملاحظتك أو الشيء الذي تريد إضافته إلى مداد.</p>
+          <textarea id="feedbackMessage" required maxlength="2000" rows="5" placeholder="اكتب ملاحظتك هنا..." class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"></textarea>
+          <p id="feedbackNotice" class="text-xs text-slate-500" aria-live="polite"></p>
+          <button class="w-full bg-violet-600 hover:bg-violet-700 text-white rounded-xl py-3 font-bold text-sm transition-colors">إرسال الملاحظة</button>
+        </form>
+      </div>
+    </div>
+
     <!-- Footer -->
     <footer class="bg-white border-t border-slate-100 mt-12 py-6 text-center text-xs text-slate-400">
         <p class="font-bold text-slate-700 mb-1">مِداد</p>
 <p>نتعلّم ونتشارك المعرفة لننجح معاً.</p>
-<p class="mt-2">نسخة تجريبية محلية · صُممت لخدمة التلاميذ</p>
+<p class="mt-2">نسخة تجريبية · صُممت لخدمة التلاميذ</p>
+        <button type="button" onclick="openFeedbackModal()" aria-label="أرسل ملاحظة" class="inline-flex items-center gap-2 mt-5 px-5 py-3 rounded-full bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold shadow-sm transition-colors">
+            <i class="fa-regular fa-message"></i><span>أرسل ملاحظة</span>
+        </button>
     </footer>
 
     <!-- RESOURCE DETAILS MODAL -->
@@ -403,6 +436,15 @@
                     <span class="block text-xs text-slate-400 mb-1">وصف المورد أو المحتويات</span>
                     <p id="modalDesc" class="text-sm text-slate-600 leading-relaxed bg-white border border-slate-100 p-3 rounded-xl">لا يوجد وصف متاح لهذا المورد حالياً.</p>
                 </div>
+                <section class="border border-slate-100 rounded-xl p-4 space-y-3">
+                    <div class="flex items-center justify-between"><h4 class="font-bold text-sm text-slate-800">الأسئلة والنقاش</h4><span id="questionCount" class="text-[11px] text-slate-400">0 سؤال</span></div>
+                    <div id="resourceQuestions" class="space-y-2 max-h-44 overflow-y-auto"><p class="text-xs text-slate-400">جارٍ تحميل الأسئلة...</p></div>
+                    <form id="resourceQuestionForm" class="space-y-2">
+                        <textarea id="resourceQuestionText" rows="2" maxlength="1000" required placeholder="اكتب سؤالك أو تعليقك حول هذا المورد..." class="w-full border border-slate-200 rounded-lg p-2 text-xs"></textarea>
+                        <button type="submit" class="bg-purple-600 text-white rounded-lg px-4 py-2 text-xs font-bold">إرسال السؤال</button>
+                        <p id="questionNotice" class="text-[11px] text-slate-500" aria-live="polite"></p>
+                    </form>
+                </section>
                 <div class="flex items-center gap-3 text-xs text-slate-400">
                     <span><i class="fa-regular fa-user ml-1"></i> بواسطة: <span id="modalAuthor" class="text-slate-600 font-medium">أستاذ المادة</span></span>
                     <span>•</span>
@@ -456,8 +498,26 @@
             <div id="accountPanel" class="hidden p-6 space-y-4">
                 <div class="rounded-xl bg-purple-50 p-4">
                     <p id="accountName" class="font-black text-slate-800"></p>
-                    <p id="accountEmail" class="text-xs text-slate-500 mt-1"></p>
+                    <p class="text-xs text-slate-500 mt-1">ملفك الشخصي في مِداد</p>
                     <span id="accountRole" class="inline-flex mt-3 text-xs font-bold px-3 py-1 rounded-full bg-white text-purple-700"></span>
+                    <div class="grid grid-cols-2 gap-2 mt-4">
+                      <div class="bg-white rounded-xl p-3"><p class="text-[10px] text-slate-400">الموارد المنشورة</p><strong id="accountResourceCount" class="text-xl text-slate-800">0</strong></div>
+                      <div class="bg-white rounded-xl p-3"><p class="text-[10px] text-slate-400">المرتبة</p><strong id="accountRank" class="text-sm text-purple-700">مستخدم عادي</strong></div>
+                    </div>
+                    <p id="accountContributionHint" class="text-[11px] text-slate-500 mt-2">هذه الإحصائيات خاصة بصاحب الحساب.</p>
+                </div>
+                <div id="adminRankPanel" class="hidden border border-purple-100 rounded-xl p-4 space-y-3">
+                  <h4 class="font-black text-sm text-slate-800">إدارة مراتب المستخدمين</h4>
+                  <select id="rankUserSelect" class="w-full border border-slate-200 rounded-lg p-2 text-xs"><option value="">جارٍ تحميل الحسابات...</option></select>
+                  <select id="rankValueSelect" class="w-full border border-slate-200 rounded-lg p-2 text-xs">
+                    <option value="user">مستخدم عادي</option><option value="contributor">مساهم</option><option value="distinguished_contributor">مساهم متميز</option><option value="moderator">مشرف</option><option value="admin">مدير</option>
+                  </select>
+                  <button id="saveUserRank" type="button" class="w-full bg-purple-600 text-white rounded-lg py-2 text-xs font-bold">حفظ المرتبة</button>
+                  <p id="rankAdminNotice" class="text-[11px] text-slate-500" aria-live="polite"></p>
+                  <div class="border-t border-slate-100 pt-3 space-y-2">
+                    <div class="flex items-center justify-between"><h5 class="font-bold text-xs text-slate-700">ملاحظات واقتراحات المستخدمين</h5><button type="button" id="refreshFeedback" class="text-[11px] text-purple-700 font-bold">تحديث</button></div>
+                    <div id="adminFeedbackList" class="space-y-2 max-h-48 overflow-y-auto"><p class="text-[11px] text-slate-400">تظهر الرسائل هنا للمدير فقط.</p></div>
+                  </div>
                 </div>
                 <button id="authSignOut" type="button" class="w-full border border-rose-200 text-rose-600 hover:bg-rose-50 font-bold py-3 rounded-xl">تسجيل الخروج</button>
             </div>
@@ -503,6 +563,17 @@
                             <option value="exercises">التمارين</option>
                         </select>
                     </div>
+                </div>
+
+                <div id="examTermWrap" class="hidden rounded-2xl border border-violet-100 bg-gradient-to-l from-violet-50 to-white p-4">
+                    <div class="mb-3 flex items-center gap-2"><i class="fa-solid fa-calendar-check text-violet-600"></i><label class="text-sm font-black text-slate-800">حدد الفصل الدراسي *</label></div>
+                    <input type="hidden" id="formTerm" value="" />
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2" role="group" aria-label="الفصل الدراسي">
+                        <button type="button" class="term-choice-btn" data-term="1" onclick="chooseResourceTerm('1')"><span class="term-number">01</span><span>الفصل الأول</span></button>
+                        <button type="button" class="term-choice-btn" data-term="2" onclick="chooseResourceTerm('2')"><span class="term-number">02</span><span>الفصل الثاني</span></button>
+                        <button type="button" class="term-choice-btn" data-term="3" onclick="chooseResourceTerm('3')"><span class="term-number">03</span><span>الفصل الثالث</span></button>
+                    </div>
+                    <p id="termChoiceHint" class="mt-2 text-[11px] text-slate-500">اختر الفصل الذي ينتمي إليه الفرض أو الاختبار.</p>
                 </div>
 
                 <div>
@@ -578,7 +649,7 @@
             { id: 'languages', name: 'اللغات عامة', icon: 'fa-comments', color: 'from-rose-400 to-red-500' },
             { id: 'sciences', name: 'علوم الطبيعة والحياة', icon: 'fa-dna', color: 'from-green-400 to-emerald-600' },
             { id: 'physics', name: 'الفيزياء', icon: 'fa-atom', color: 'from-cyan-400 to-sky-500' },
-            { id: 'islamic', name: 'التربية الإسلامية', icon: 'fa-mosque', color: 'from-teal-500 to-green-600' },
+            { id: 'islamic', name: 'العلوم الإسلامية', icon: 'fa-mosque', color: 'from-teal-500 to-green-600' },
             { id: 'philosophy', name: 'الفلسفة', icon: 'fa-brain', color: 'from-violet-400 to-fuchsia-600' },
             { id: 'history_geo', name: 'التاريخ والجغرافيا', icon: 'fa-map-location-dot', color: 'from-orange-400 to-amber-600' }
         ];
@@ -733,6 +804,9 @@
         // 4. Step 3 -> Step 4: Category Selected (Show specific resources)
         function selectCategory(category) {
             currentSelection.category = category;
+            const termFilterValue = document.getElementById('examTermFilterValue');
+            if (termFilterValue) termFilterValue.value = 'all';
+            document.querySelectorAll('.term-filter-btn').forEach(btn => btn.classList.toggle('is-active', btn.dataset.term === 'all'));
             
             document.getElementById('resourceCategoryTitle').innerText = category.name;
             document.getElementById('resourceCategorySubtitle').innerText = `${currentSelection.subject.name} • ${currentSelection.year.name}`;
@@ -757,10 +831,15 @@
             const emptyState = document.getElementById('emptyState');
             grid.innerHTML = '';
             
+            const isExamCategory = currentSelection.category.id === 'exams';
+            const filterWrap = document.getElementById('examTermFilterWrap');
+            filterWrap.classList.toggle('hidden', !isExamCategory);
+            const selectedTerm = document.getElementById('examTermFilterValue')?.value || 'all';
             const filtered = resources.filter(r => 
                 r.subjectId === currentSelection.subject.id && 
                 r.yearId === currentSelection.year.id && 
-                r.categoryId === currentSelection.category.id
+                r.categoryId === currentSelection.category.id &&
+                (!isExamCategory || selectedTerm === 'all' || String(r.term || '') === selectedTerm)
             );
 
             if(filtered.length === 0) {
@@ -950,7 +1029,9 @@
         }
 
         function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
+            const modal = document.getElementById(id);
+            modal.classList.add('hidden');
+            if (id === 'feedbackModal') modal.classList.remove('flex');
         }
 
         // View Resource Specific Details
@@ -962,8 +1043,11 @@
             const yrName = years.find(y => y.id === res.yearId)?.name || '';
             const catName = categories.find(c => c.id === res.categoryId)?.name || '';
 
+            activeQuestionResourceId = res.id;
+            loadResourceQuestions(res.id);
+            document.getElementById('questionNotice').textContent = '';
             document.getElementById('modalTitle').innerText = res.title;
-            document.getElementById('modalBadge').innerText = catName;
+            document.getElementById('modalBadge').innerText = catName + (res.categoryId === 'exams' && res.term ? ' • الفصل ' + res.term : '');
             document.getElementById('modalSubject').innerText = subName;
             document.getElementById('modalYear').innerText = yrName;
             document.getElementById('modalDesc').innerText = res.desc || 'لا يوجد وصف تفصيلي متاح.';
@@ -987,6 +1071,31 @@
             years.forEach(y => {
                 yrSelect.innerHTML += `<option value="${y.id}">${y.name}</option>`;
             });
+        }
+
+        // Show a clear semester selector only for exams and tests.
+        function chooseResourceTerm(term) {
+            document.getElementById('formTerm').value = term;
+            document.querySelectorAll('.term-choice-btn').forEach(btn => btn.classList.toggle('is-active', btn.dataset.term === term));
+            document.getElementById('termChoiceHint').textContent = 'تم اختيار الفصل ' + (term === '1' ? 'الأول' : term === '2' ? 'الثاني' : 'الثالث') + '.';
+        }
+        document.getElementById('formCategory').addEventListener('change', () => {
+            const isExam = document.getElementById('formCategory').value === 'exams';
+            document.getElementById('examTermWrap').classList.toggle('hidden', !isExam);
+            document.getElementById('formTerm').required = isExam;
+            if (!isExam) chooseResourceTerm('');
+        });
+        document.getElementById('addResourceForm').addEventListener('reset', () => {
+            document.getElementById('examTermWrap').classList.add('hidden');
+            document.getElementById('formTerm').required = false;
+            document.getElementById('formTerm').value = '';
+            document.querySelectorAll('.term-choice-btn').forEach(btn => btn.classList.remove('is-active'));
+            document.getElementById('termChoiceHint').textContent = 'اختر الفصل الذي ينتمي إليه الفرض أو الاختبار.';
+        });
+        function setExamTermFilter(term) {
+            document.getElementById('examTermFilterValue').value = term;
+            document.querySelectorAll('.term-filter-btn').forEach(btn => btn.classList.toggle('is-active', btn.dataset.term === term));
+            renderResourcesList();
         }
 
         // Show the selected attachment name in the resource form.
@@ -1019,6 +1128,13 @@
                 return;
             }
 
+            const selectedCategory = document.getElementById('formCategory').value;
+            const selectedTerm = document.getElementById('formTerm').value;
+            if (selectedCategory === 'exams' && !['1','2','3'].includes(selectedTerm)) {
+                alert('يرجى تحديد الفصل الدراسي للفرض أو الاختبار.');
+                document.getElementById('examTermWrap').scrollIntoView({behavior:'smooth',block:'center'});
+                return;
+            }
             const selectedFile = document.getElementById('formFile').files[0];
             if (!selectedFile) { alert('يرجى اختيار ملف أو صورة أولاً.'); return; }
             const allowedExtensions = /\.(pdf|png|jpe?g|webp|gif|bmp|docx?|pptx?)$/i;
@@ -1056,6 +1172,7 @@
                     subject_id: document.getElementById('formSubject').value,
                     year_id: document.getElementById('formYear').value,
                     category_id: document.getElementById('formCategory').value,
+                    term: document.getElementById('formCategory').value === 'exams' ? Number(document.getElementById('formTerm').value) : null,
                     author: document.getElementById('formAuthor').value.trim() || window.medadCurrentProfile?.display_name || 'مساهم متطوع',
                     file_name: selectedFile.name,
                     file_path: uploadedPath,
@@ -1110,6 +1227,7 @@
                 subjectId: row.subject_id,
                 yearId: row.year_id,
                 categoryId: row.category_id,
+                term: row.term == null ? null : String(row.term),
                 author: row.author || 'مساهم متطوع',
                 url,
                 fileName: row.file_name,
@@ -1369,6 +1487,86 @@
     window.medadCurrentUser = null;
     window.medadCurrentProfile = null;
 
+    let activeQuestionResourceId = null;
+    const medadRankLabels = { user:'مستخدم عادي', contributor:'مساهم', distinguished_contributor:'مساهم متميز', moderator:'مشرف', admin:'مدير' };
+
+    async function loadRankUsers() {
+        const select=document.getElementById('rankUserSelect');
+        if (!select || !medadSupabase) return;
+        select.innerHTML='<option value="">جارٍ تحميل الحسابات...</option>';
+        const {data,error}=await medadSupabase.from('profiles').select('id,display_name,role').order('display_name');
+        if (error) { select.innerHTML='<option value="">تعذر تحميل الحسابات</option>'; console.warn('Rank users:',error.message); return; }
+        select.innerHTML='';
+        (data||[]).forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=(p.display_name||'مستخدم')+' — '+(medadRankLabels[p.role]||'مستخدم عادي'); o.dataset.role=p.role||'user'; select.appendChild(o); });
+        if (!data?.length) select.innerHTML='<option value="">لا توجد حسابات</option>';
+        select.onchange=()=>{ const opt=select.selectedOptions[0]; if(opt) document.getElementById('rankValueSelect').value=opt.dataset.role||'user'; };
+        select.dispatchEvent(new Event('change'));
+    }
+
+    async function loadAdminFeedback() {
+        const box=document.getElementById('adminFeedbackList');
+        if (!box || window.medadCurrentProfile?.role !== 'admin' || !medadSupabase) return;
+        box.innerHTML='<p class="text-[11px] text-slate-400">جارٍ تحميل الرسائل...</p>';
+        const {data,error}=await medadSupabase.from('medad_feedback').select('id,author_name,kind,message,created_at').order('created_at',{ascending:false}).limit(30);
+        if (error) { box.textContent='تعذر تحميل الرسائل. تأكد من تطبيق إعداد قاعدة البيانات.'; console.warn('Feedback load:',error.message); return; }
+        box.innerHTML='';
+        if (!data?.length) { box.innerHTML='<p class="text-[11px] text-slate-400">لا توجد رسائل جديدة.</p>'; return; }
+        const kinds={suggestion:'اقتراح',problem:'مشكلة',note:'ملاحظة'};
+        data.forEach(row=>{ const card=document.createElement('div'); card.className='rounded-lg bg-slate-50 p-2'; const head=document.createElement('div'); head.className='flex justify-between gap-2 text-[10px] text-slate-500 mb-1'; const author=document.createElement('strong'); author.textContent=row.author_name||'زائر'; const kind=document.createElement('span'); kind.textContent=kinds[row.kind]||'رسالة'; head.append(author,kind); const body=document.createElement('p'); body.className='text-xs text-slate-700 whitespace-pre-wrap'; body.textContent=row.message; card.append(head,body); box.appendChild(card); });
+    }
+
+    function openFeedbackModal() {
+        document.getElementById('feedbackNotice').textContent = '';
+        document.getElementById('feedbackModal').classList.remove('hidden');
+        document.getElementById('feedbackModal').classList.add('flex');
+    }
+
+    async function loadResourceQuestions(resourceId) {
+        const box = document.getElementById('resourceQuestions');
+        const count = document.getElementById('questionCount');
+        box.innerHTML = '<p class="text-xs text-slate-400">جارٍ تحميل الأسئلة...</p>';
+        if (!medadSupabase) { box.textContent = 'خدمة الأسئلة غير متاحة حالياً.'; return; }
+        const { data, error } = await medadSupabase.from('resource_questions').select('id, author_name, body, created_at').eq('resource_id', resourceId).order('created_at', {ascending:true});
+        if (error) { console.warn('Questions load:', error.message); box.innerHTML = '<p class="text-xs text-slate-400">فعّل جدول الأسئلة من ملف إعداد قاعدة البيانات لعرض النقاش.</p>'; return; }
+        count.textContent = (data || []).length + ' سؤال';
+        box.innerHTML = '';
+        if (!data?.length) { box.innerHTML = '<p class="text-xs text-slate-400">لا توجد أسئلة بعد. كن أول من يسأل.</p>'; return; }
+        data.forEach(q => { const item=document.createElement('div'); item.className='bg-slate-50 rounded-lg p-3'; const name=document.createElement('strong'); name.className='block text-xs text-slate-700 mb-1'; name.textContent=q.author_name || 'تلميذ'; const body=document.createElement('p'); body.className='text-xs text-slate-600 whitespace-pre-wrap'; body.textContent=q.body; item.append(name,body); box.appendChild(item); });
+    }
+
+    async function submitResourceQuestion(event) {
+        event.preventDefault();
+        const notice=document.getElementById('questionNotice');
+        if (!window.medadCurrentUser) { notice.textContent='سجّل الدخول أولاً لطرح سؤال.'; openAuthModal(); return; }
+        const body=document.getElementById('resourceQuestionText').value.trim();
+        if (!body || !activeQuestionResourceId) return;
+        const name=window.medadCurrentProfile?.display_name || window.medadCurrentUser.user_metadata?.display_name || 'تلميذ';
+        const {error}=await medadSupabase.from('resource_questions').insert({resource_id:activeQuestionResourceId,user_id:window.medadCurrentUser.id,author_name:name,body});
+        if (error) { notice.textContent='تعذر إرسال السؤال. تأكد من تطبيق إعداد قاعدة البيانات.'; console.error(error); return; }
+        document.getElementById('resourceQuestionText').value=''; notice.textContent='تم إرسال سؤالك.'; loadResourceQuestions(activeQuestionResourceId);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('resourceQuestionForm')?.addEventListener('submit', submitResourceQuestion);
+        document.getElementById('refreshFeedback')?.addEventListener('click', loadAdminFeedback);
+        document.getElementById('saveUserRank')?.addEventListener('click', async () => {
+            const notice=document.getElementById('rankAdminNotice'); const target=document.getElementById('rankUserSelect').value; const role=document.getElementById('rankValueSelect').value;
+            if (window.medadCurrentProfile?.role !== 'admin' || !target) { notice.textContent='لا تملك صلاحية تنفيذ هذا الإجراء.'; return; }
+            const {error}=await medadSupabase.from('profiles').update({role}).eq('id',target);
+            if (error) { notice.textContent='تعذر تحديث المرتبة. تأكد من سياسات المدير في إعداد قاعدة البيانات.'; console.error(error); return; }
+            notice.textContent='تم تحديث مرتبة الحساب.'; loadRankUsers();
+        });
+        document.getElementById('feedbackForm')?.addEventListener('submit', async (event) => {
+            event.preventDefault(); const notice=document.getElementById('feedbackNotice');
+            if (!medadSupabase) { notice.textContent='قاعدة البيانات غير متاحة.'; return; }
+            const message=document.getElementById('feedbackMessage').value.trim(); if (!message) return;
+            const user=window.medadCurrentUser; const author=window.medadCurrentProfile?.display_name || user?.user_metadata?.display_name || 'زائر';
+            const {error}=await medadSupabase.from('medad_feedback').insert({user_id:user?.id || null,author_name:author,kind:'note',message});
+            if (error) { notice.textContent='تعذر إرسال الرسالة. تأكد من تطبيق إعداد قاعدة البيانات.'; console.error(error); return; }
+            document.getElementById('feedbackForm').reset(); notice.textContent='تم إرسال ملاحظتك.';
+        });
+    });
+
     function medadAuthConfigured() {
         return MEDAD_SUPABASE_URL.startsWith('https://') &&
                MEDAD_SUPABASE_ANON_KEY.length > 30 &&
@@ -1393,8 +1591,14 @@
             panel.classList.remove('hidden');
             const profile = window.medadCurrentProfile || {};
             document.getElementById('accountName').textContent = profile.display_name || window.medadCurrentUser.user_metadata?.display_name || 'مستخدم مداد';
-            document.getElementById('accountEmail').textContent = window.medadCurrentUser.email || '';
-            document.getElementById('accountRole').textContent = profile.role === 'admin' ? 'مدير المنصة' : 'مستخدم عادي';
+            const rankNames = { user: 'مستخدم عادي', contributor: 'مساهم', distinguished_contributor: 'مساهم متميز', moderator: 'مشرف', admin: 'مدير' };
+            const rank = rankNames[profile.role] || 'مستخدم عادي';
+            document.getElementById('accountRole').textContent = rank;
+            document.getElementById('accountRank').textContent = rank;
+            document.getElementById('accountResourceCount').textContent = resources.filter(r => r.ownerId === window.medadCurrentUser.id).length;
+            const adminPanel = document.getElementById('adminRankPanel');
+            adminPanel.classList.toggle('hidden', profile.role !== 'admin');
+            if (profile.role === 'admin') { loadRankUsers(); loadAdminFeedback(); }
         } else {
             form.classList.remove('hidden');
             panel.classList.add('hidden');
@@ -1424,7 +1628,7 @@
         btn.id = 'medadAuthButton';
         btn.type = 'button';
         btn.className = 'border border-purple-200 bg-white hover:bg-purple-50 text-purple-700 font-bold px-3 py-2 rounded-xl text-sm transition-all';
-        btn.textContent = window.medadCurrentUser ? (window.medadCurrentProfile?.role === 'admin' ? 'مدير المنصة' : 'حسابي') : 'دخول / تسجيل';
+        btn.textContent = window.medadCurrentUser ? (medadRankLabels[window.medadCurrentProfile?.role] || 'حسابي') : 'دخول / تسجيل';
         btn.onclick = openAuthModal;
         addBtn.parentNode.insertBefore(btn, addBtn);
     }
