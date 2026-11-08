@@ -1062,6 +1062,9 @@
                 const { data, error: insertError } = await medadSupabase
                     .from('resources').insert(payload).select().single();
                 if (insertError) throw insertError;
+                if (!data || !data.id) {
+                    throw new Error('تم إرسال المورد إلى قاعدة البيانات لكن لم تُرجع بياناته. نحتاج فحص صلاحية SELECT على جدول resources.');
+                }
 
                 const newRes = mapMedadResource(data, publicResult.data.publicUrl);
                 resources.unshift(newRes);
