@@ -126,6 +126,18 @@
         @keyframes introFailHide { to{ visibility:hidden; } }
         @keyframes introFailShow { to{ visibility:visible; } }
     </style>
+
+    <style>
+      @keyframes medadDrawerIn {
+        from { transform: translateX(-100%); }
+        to { transform: translateX(0); }
+      }
+      .medad-profile-drawer { animation: medadDrawerIn .28s ease-out both; border:1px solid #e2e8f0; }
+      @media (max-width: 480px) {
+        .medad-profile-drawer { width: min(92vw, 520px); }
+      }
+    </style>
+
 </head>
 <body class="text-slate-800 flex flex-col min-h-screen intro-on">
     <div id="intro" aria-hidden="true">
@@ -389,7 +401,7 @@
     <!-- Feedback modal -->
     <div id="feedbackModal" class="fixed inset-0 z-[80] hidden items-center justify-center p-4 bg-slate-950/50">
       <div class="bg-white w-full max-w-md rounded-2xl p-5 shadow-xl space-y-4">
-        <div class="flex justify-between items-center"><h3 class="font-black text-slate-900">أرسل ملاحظة</h3><button onclick="closeModal('feedbackModal')" class="text-slate-400 text-xl">×</button></div>
+        <div class="flex justify-between items-center"><h3 class="font-black text-slate-900">أرسل ملاحظة</h3><button type="button" onclick="closeModal('feedbackModal')" aria-label="إغلاق" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors shadow-xs"><i class="fa-solid fa-xmark"></i></button></div>
         <form id="feedbackForm" class="space-y-3">
           <p class="text-xs text-slate-500">اكتب ملاحظتك أو الشيء الذي تريد إضافته إلى مداد.</p>
           <textarea id="feedbackMessage" required maxlength="2000" rows="5" placeholder="اكتب ملاحظتك هنا..." class="w-full border border-slate-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-violet-300"></textarea>
@@ -466,14 +478,14 @@
 
     <!-- ADD RESOURCE MODAL -->
     <!-- Authentication Modal -->
-    <div id="authModal" class="fixed inset-0 z-[70] flex items-center justify-center p-4 bg-slate-950/50 backdrop-blur-sm hidden">
-        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl overflow-hidden border border-slate-100">
+    <div id="authModal" dir="ltr" class="fixed inset-0 z-[70] flex items-stretch justify-start bg-slate-950/50 backdrop-blur-sm hidden">
+        <div dir="rtl" class="medad-profile-drawer bg-white w-full max-w-xl h-full rounded-r-2xl rounded-l-none shadow-2xl overflow-y-auto border border-slate-100">
             <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <div>
                     <h3 class="font-black text-slate-900">حساب مِداد</h3>
                     <p class="text-xs text-slate-500 mt-1">سجّل الدخول أو أنشئ حساباً جديداً</p>
                 </div>
-                <button type="button" onclick="closeModal('authModal')" class="w-9 h-9 rounded-xl bg-white border border-slate-200 text-slate-500 hover:text-slate-800"><i class="fa-solid fa-xmark"></i></button>
+                <button type="button" onclick="closeModal('authModal')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors shadow-xs"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="authForm" class="p-6 space-y-4">
                 <div id="authNameWrap" class="hidden">
@@ -496,6 +508,12 @@
                 </div>
             </form>
             <div id="accountPanel" class="hidden p-6 space-y-4">
+                <div class="flex justify-end">
+                    <button type="button" onclick="closeModal('authModal')" aria-label="إغلاق الملف الشخصي" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors shadow-xs">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+
                 <div class="rounded-xl bg-purple-50 p-4">
                     <p id="accountName" class="font-black text-slate-800"></p>
                     <p class="text-xs text-slate-500 mt-1">ملفك الشخصي في مِداد</p>
