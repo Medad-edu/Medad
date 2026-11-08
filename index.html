@@ -699,11 +699,13 @@
             
             categories.forEach(cat => {
                 // Calculate counts dynamically
-                const matchingCount = resources.filter(r => 
-                    r.subjectId === currentSelection.subject.id && 
-                    r.yearId === currentSelection.year.id && 
-                    r.categoryId === cat.id
-                ).length;
+               const matchingCount = currentSelection.subject?.id && currentSelection.year?.id
+    ? resources.filter(r =>
+        r.subjectId === currentSelection.subject.id &&
+        r.yearId === currentSelection.year.id &&
+        r.categoryId === cat.id
+    ).length
+    : 0;
 
                 const card = document.createElement('div');
                 card.className = "card-pop bg-white p-6 rounded-2xl border border-slate-100 shadow-xs cursor-pointer flex flex-col justify-between group relative overflow-hidden";
