@@ -317,6 +317,8 @@
                     <p class="text-slate-500 text-sm leading-8">اكتشف التمارين والاختبارات والملخصات التي يشاركها التلاميذ، واستفد من تجارب الآخرين، وساهم بدورك في نشر المعرفة.</p>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="subjectsGrid">
+                    <!-- Injected via JS -->
+                </div>
             </div>
 
             <!-- STEP 2: YEARS -->
@@ -478,7 +480,7 @@
     <!-- Authentication Modal -->
     <div id="authModal" dir="ltr" class="fixed inset-0 z-[70] flex items-stretch justify-start bg-slate-950/50 backdrop-blur-sm hidden">
         <div dir="rtl" class="medad-profile-drawer bg-white w-full max-w-xl h-full rounded-r-2xl rounded-l-none shadow-2xl overflow-y-auto border border-slate-100">
-            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+            <div id="authModalHeader" class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
                 <div>
                     <h3 class="font-black text-slate-900">حساب مِداد</h3>
                     <p class="text-xs text-slate-500 mt-1">سجّل الدخول أو أنشئ حساباً جديداً</p>
@@ -1602,9 +1604,11 @@
         if (!modal) return;
         const form = document.getElementById('authForm');
         const panel = document.getElementById('accountPanel');
+        const header = document.getElementById('authModalHeader');
         if (window.medadCurrentUser) {
             form.classList.add('hidden');
             panel.classList.remove('hidden');
+            header?.classList.add('hidden');
             const profile = window.medadCurrentProfile || {};
             document.getElementById('accountName').textContent = profile.display_name || window.medadCurrentUser.user_metadata?.display_name || 'مستخدم مداد';
             const rankNames = { user: 'مستخدم عادي', contributor: 'مساهم', distinguished_contributor: 'مساهم متميز', moderator: 'مشرف', admin: 'مدير' };
@@ -1618,6 +1622,7 @@
         } else {
             form.classList.remove('hidden');
             panel.classList.add('hidden');
+            header?.classList.remove('hidden');
             setAuthMode(medadAuthMode);
         }
         modal.classList.remove('hidden');
@@ -1788,5 +1793,3 @@
     </script>
 </body>
 </html>
-                    <!-- Injected via JS -->
-                </div>
