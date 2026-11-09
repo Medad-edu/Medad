@@ -317,8 +317,6 @@
                     <p class="text-slate-500 text-sm leading-8">اكتشف التمارين والاختبارات والملخصات التي يشاركها التلاميذ، واستفد من تجارب الآخرين، وساهم بدورك في نشر المعرفة.</p>
                 </div>
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4" id="subjectsGrid">
-                    <!-- Injected via JS -->
-                </div>
             </div>
 
             <!-- STEP 2: YEARS -->
@@ -470,7 +468,7 @@
                 </a>
                 <a id="modalDownloadBtn" href="#" download target="_blank" rel="noopener noreferrer" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white font-medium text-center py-2.5 rounded-xl transition-all shadow-xs flex items-center justify-center gap-2 text-sm">
                     <i class="fa-solid fa-download"></i>
-                    <span>تحميل</span> <div class="p-5 border-b border-slate-100 flex items-center justify-end bg-slate-50"></div>
+                    <span>تحميل</span>
                 </a>
             </div>
         </div>
@@ -480,8 +478,12 @@
     <!-- Authentication Modal -->
     <div id="authModal" dir="ltr" class="fixed inset-0 z-[70] flex items-stretch justify-start bg-slate-950/50 backdrop-blur-sm hidden">
         <div dir="rtl" class="medad-profile-drawer bg-white w-full max-w-xl h-full rounded-r-2xl rounded-l-none shadow-2xl overflow-y-auto border border-slate-100">
-           
-                <button type="button" onclick="closeModal('authModal')" aria-label="إغلاق" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors shadow-xs"><i class="fa-solid fa-xmark"></i></button>
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div>
+                    <h3 class="font-black text-slate-900">حساب مِداد</h3>
+                    <p class="text-xs text-slate-500 mt-1">سجّل الدخول أو أنشئ حساباً جديداً</p>
+                </div>
+                <button type="button" onclick="closeModal('authModal')" class="w-8 h-8 rounded-lg bg-white border border-slate-200 text-slate-400 hover:text-slate-600 flex items-center justify-center transition-colors shadow-xs"><i class="fa-solid fa-xmark"></i></button>
             </div>
             <form id="authForm" class="p-6 space-y-4">
                 <div id="authNameWrap" class="hidden">
@@ -1786,6 +1788,5 @@
     </script>
 </body>
 </html>
-
-
-
+                    <!-- Injected via JS -->
+                </div>
