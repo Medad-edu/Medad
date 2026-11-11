@@ -1746,7 +1746,13 @@
         document.getElementById('authName').required = signup;
         document.getElementById('authPassword').autocomplete = signup ? 'new-password' : 'current-password';
         document.getElementById('authSubmit').textContent = signup ? 'إنشاء الحساب' : 'تسجيل الدخول';
-        document.getElementById('authModeToggle').textContent = signup ? 'لدي حساب بالفعل' : 'إنشاء حساب جديد';
+        const modeToggle = document.getElementById('authModeToggle');
+        modeToggle.textContent = signup ? 'لدي حساب بالفعل' : 'إنشاء حساب جديد';
+        let accountKnown = false;
+        try { accountKnown = localStorage.getItem('medad-account-known') === '1'; } catch (e) {}
+        modeToggle.className = signup || accountKnown
+            ? 'text-purple-700 font-bold'
+            : 'basis-full w-full text-center text-purple-800 font-black bg-purple-50 border-2 border-purple-200 hover:bg-purple-100 px-4 py-3 rounded-xl shadow-sm transition-all';
         document.getElementById('authReset').classList.toggle('hidden', signup);
         document.getElementById('authMessage').classList.add('hidden');
     }
@@ -1798,6 +1804,8 @@
                         options: { data: { display_name }, emailRedirectTo: window.location.origin + window.location.pathname }
                     });
                     if (error) throw error;
+                    try { localStorage.setItem('medad-account-known', '1'); } catch (e) {}
+                    setAuthMode('login');
                     if (data.session) {
                         await loadMedadProfile(data.user);
                         closeModal('authModal');
@@ -1808,6 +1816,8 @@
                 } else {
                     const { data, error } = await medadSupabase.auth.signInWithPassword({ email, password });
                     if (error) throw error;
+                    try { localStorage.setItem('medad-account-known', '1'); } catch (e) {}
+                    setAuthMode('login');
                     await loadMedadProfile(data.user);
                     closeModal('authModal');
                 }
