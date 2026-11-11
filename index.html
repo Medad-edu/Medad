@@ -1282,7 +1282,7 @@
             let resourceInserted = false;
 
             try {
-                const safeName = selectedFile.name.replace(/[^\w.\-()\u0600-\u06FF ]/g, '_');
+               const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
                 uploadedPath = `${ownerId}/${Date.now()}-${safeName}`;
 
                 const { error: uploadError } = await medadSupabase.storage
