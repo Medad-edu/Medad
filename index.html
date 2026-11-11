@@ -1000,7 +1000,13 @@
         function downloadUrl(u) {
             u = safeUrl(u);
             const id = driveId(u);
-            return id ? 'https://drive.google.com/uc?export=download&id=' + id : u;
+            if (id) return 'https://drive.google.com/uc?export=download&id=' + id;
+
+            // Use Supabase's download endpoint so files download instead of opening a preview.
+            if (/\/storage\/v1\/object\/public\//i.test(u)) {
+                return u.replace('/storage/v1/object/public/', '/storage/v1/object/download/') + '?download';
+            }
+            return u;
         }
 
         function createResourceCard(res) {
@@ -1022,7 +1028,7 @@
                 </div>
                 <div class="pt-3 border-t border-slate-50 text-xs">
                     <div class="text-slate-400 truncate mb-1"><i class="fa-regular fa-user ml-1"></i>${esc(res.author) || 'مجهول'}</div>
-                    ${res.fileName ? `<div class="text-[10px] text-purple-600 truncate mb-3"><i class="fa-regular fa-paperclip ml-1"></i>${esc(res.fileName)}</div>` : '<div class="mb-3"></div>'}
+                    <div class="mb-3"></div>
                     <div class="grid grid-cols-2 gap-2">
                         <a href="${esc(viewUrl(res.url))}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-center gap-1.5 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium py-2 rounded-lg transition-colors text-[12px]">
                             <i class="fa-regular fa-eye text-[12px]"></i><span>عرض</span>
