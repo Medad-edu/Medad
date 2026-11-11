@@ -996,19 +996,17 @@
             u = safeUrl(u);
             const id = driveId(u);
             return id ? 'https://drive.google.com/file/d/' + id + '/view' : u;
-        }
-        function downloadUrl(u) {
-            u = safeUrl(u);
-            const id = driveId(u);
-            if (id) return 'https://drive.google.com/uc?export=download&id=' + id;
+     function downloadUrl(u) {
+    u = safeUrl(u);
+    const id = driveId(u);
+    if (id) return 'https://drive.google.com/uc?export=download&id=' + id;
 
-            // Use Supabase's download endpoint so files download instead of opening a preview.
-            if (/\/storage\/v1\/object\/public\//i.test(u)) {
-                return u.replace('/storage/v1/object/public/', '/storage/v1/object/download/') + '?download';
-            }
-            return u;
-        }
+    if (/\/storage\/v1\/object\/public\//i.test(u)) {
+        return u + (u.includes('?') ? '&' : '?') + 'download';
+    }
 
+    return u;
+}
         function createResourceCard(res) {
             const card = document.createElement('div');
             card.className = "bg-white p-5 rounded-2xl border border-slate-100 shadow-xs flex flex-col justify-between hover:border-purple-200 transition-all group";
