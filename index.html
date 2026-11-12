@@ -1675,37 +1675,71 @@
         document.getElementById('resourceQuestionText').value=''; notice.textContent='تم إرسال سؤالك.'; loadResourceQuestions(activeQuestionResourceId);
     }
 
-    
-document.getElementById('saveUserRank')?.addEventListener('click', async () => {
-    const notice = document.getElementById('rankAdminNotice');
-    const target = document.getElementById('rankUserSelect').value;
-    const role = document.getElementById('rankValueSelect').value;
+document.addEventListener('DOMContentLoaded', () => {
 
-    if (window.medadCurrentProfile?.role !== 'admin' || !target) {
-        notice.textContent = 'لا تملك صلاحية تنفيذ هذا الإجراء.';
-        return;
-    }
+    document.getElementById('resourceQuestionForm')?.addEventListener('submit', submitResourceQuestion);
 
-    notice.textContent = 'جارٍ تحديث المرتبة...';
+    document.getElementById('refreshFeedback')?.addEventListener('click', loadAdminFeedback);
 
-    const { data, error } = await medadSupabase.functions.invoke(
-        'clever-processor',
-        {
-            body: {
-                targetId: target,
-                role: role
-            }
+    // تغيير رتبة المستخدم
+    document.getElementById('saveUserRank')?.addEventListener('click', async () => {
+        const notice = document.getElementById('rankAdminNotice');
+        const target = document.getElementById('rankUserSelect').value;
+        const role = document.getElementById('rankValueSelect').value;
+
+        if (window.medadCurrentProfile?.role !== 'admin' || !target) {
+            notice.textContent = 'لا تملك صلاحية تنفيذ هذا الإجراء.';
+            return;
         }
-    );
 
-    if (error || !data || data.message !== 'تم تحديث الرتبة بنجاح') {
-        notice.textContent = data?.message || 'تعذر تحديث المرتبة.';
-        console.error('Rank update error:', error || data);
-        return;
-    }
+        notice.textContent = 'جارٍ تحديث المرتبة...';
 
-    notice.textContent = 'تم تحديث مرتبة الحساب.';
-    await loadRankUsers();
+        const { data, error } = await medadSupabase.functions.invoke('clever-processor', {
+            body: { targetId: target, role: role }
+        });
+
+        if (error || !data || data.message !== 'تم تحديث الرتبة بنجاح') {
+            notice.textContent = data?.message || 'تعذر تحديث المرتبة.';
+            console.error('Rank update error:', error || data);
+            return;
+        }
+
+        notice.textContent = 'تم تحديث مرتبة الحساب.';
+        await loadRankUsers();
+    });
+
+    document.getElementById('feedbackForm')?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const notice = document.getElementById('feedbackNotice');
+
+        if (!medadSupabase) {
+            notice.textContent = 'قاعدة البيانات غير متاحة.';
+            return;
+        }
+
+        const message = document.getElementById('feedbackMessage').value.trim();
+        if (!message) return;
+
+        const user = window.medadCurrentUser;
+        const author = window.medadCurrentProfile?.display_name || user?.user_metadata?.display_name || 'زائر';
+
+        const { error } = await medadSupabase.from('medad_feedback').insert({
+            user_id: user?.id || null,
+            author_name: author,
+            kind: 'note',
+            message
+        });
+
+        if (error) {
+            notice.textContent = 'تعذر إرسال الرسالة. تأكد من تطبيق إعداد قاعدة البيانات.';
+            console.error(error);
+            return;
+        }
+
+        document.getElementById('feedbackForm').reset();
+        notice.textContent = 'تم إرسال ملاحظتك.';
+    });
+
 });
 
         document.getElementById('feedbackForm')?.addEventListener('submit', async (event) => {
