@@ -1698,12 +1698,12 @@ document.getElementById('saveUserRank')?.addEventListener('click', async () => {
         }
     );
 
-    if (error || !data || data.message !== 'تم تحديث الرتبة بنجاح') {
-        notice.textContent = data?.message || 'تعذر تحديث المرتبة.';
-        console.error('Rank update error:', error || data);
-        return;
-    }
-
+   if (error || !data || data.message !== 'تم تحديث الرتبة بنجاح') {
+    notice.textContent =
+        data?.message || error?.message || 'تعذر تحديث المرتبة.';
+    console.error('Rank update error:', error, data);
+    return;
+}
     notice.textContent = 'تم تحديث مرتبة الحساب.';
     await loadRankUsers();
 });
