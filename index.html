@@ -1831,26 +1831,25 @@ async function loadMedadProfile(user) {
     window.medadCurrentUser = user || null;
     window.medadCurrentProfile = null;
 
-    if (!user || !medadSupabase) return;
+    if (user && medadSupabase) {
+        const { data, error } = await medadSupabase.functions.invoke(
+            'clever-processor',
+            {
+                body: { action: 'get_my_profile' }
+            }
+        );
 
-    const { data, error } = await medadSupabase.functions.invoke(
-        'clever-processor',
-        {
-            body: { action: 'get_my_profile' }
+        if (error || !data?.data) {
+            console.warn('Medad profile:', error || data);
+        } else {
+            window.medadCurrentProfile = data.data;
         }
-    );
-
-    if (error || !data?.data) {
-        console.warn('Medad profile:', error || data);
-        return;
     }
 
-    window.medadCurrentProfile = data.data;
+    updateAuthButton();
 }
-        updateAuthButton();
-    }
 
-    document.addEventListener('DOMContentLoaded', async () => {
+document.addEventListener('DOMContentLoaded', async () => {
         updateAuthButton();
         document.getElementById('authModeToggle').addEventListener('click', () => setAuthMode(medadAuthMode === 'login' ? 'signup' : 'login'));
         document.getElementById('authForm').addEventListener('submit', async (event) => {
