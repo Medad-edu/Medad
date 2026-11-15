@@ -1827,15 +1827,26 @@ document.getElementById('saveUserRank')?.addEventListener('click', async () => {
         btn.onclick = openAuthModal;
         addBtn.parentNode.insertBefore(btn, addBtn);
     }
+async function loadMedadProfile(user) {
+    window.medadCurrentUser = user || null;
+    window.medadCurrentProfile = null;
 
-    async function loadMedadProfile(user) {
-        window.medadCurrentUser = user || null;
-        window.medadCurrentProfile = null;
-        if (user && medadSupabase) {
-            const { data, error } = await medadSupabase.from('profiles').select('id, display_name, role').eq('id', user.id).maybeSingle();
-            if (!error && data) window.medadCurrentProfile = data;
-            else if (error) console.warn('Medad profile:', error.message);
+    if (!user || !medadSupabase) return;
+
+    const { data, error } = await medadSupabase.functions.invoke(
+        'clever-processor',
+        {
+            body: { action: 'get_my_profile' }
         }
+    );
+
+    if (error || !data?.data) {
+        console.warn('Medad profile:', error || data);
+        return;
+    }
+
+    window.medadCurrentProfile = data.data;
+}
         updateAuthButton();
     }
 
