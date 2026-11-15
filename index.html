@@ -1619,18 +1619,52 @@
     let activeQuestionResourceId = null;
     const medadRankLabels = { user:'مستخدم عادي', contributor:'مساهم', distinguished_contributor:'مساهم متميز', moderator:'مشرف', admin:'مدير' };
 
-    async function loadRankUsers() {
-        const select=document.getElementById('rankUserSelect');
-        if (!select || !medadSupabase) return;
-        select.innerHTML='<option value="">جارٍ تحميل الحسابات...</option>';
-        const {data,error}=await medadSupabase.from('profiles').select('id,display_name,role').order('display_name');
-        if (error) { select.innerHTML='<option value="">تعذر تحميل الحسابات</option>'; console.warn('Rank users:',error.message); return; }
-        select.innerHTML='';
-        (data||[]).forEach(p=>{ const o=document.createElement('option'); o.value=p.id; o.textContent=(p.display_name||'مستخدم')+' — '+(medadRankLabels[p.role]||'مستخدم عادي'); o.dataset.role=p.role||'user'; select.appendChild(o); });
-        if (!data?.length) select.innerHTML='<option value="">لا توجد حسابات</option>';
-        select.onchange=()=>{ const opt=select.selectedOptions[0]; if(opt) document.getElementById('rankValueSelect').value=opt.dataset.role||'user'; };
-        select.dispatchEvent(new Event('change'));
+ 
+async function loadRankUsers() {
+    const select = document.getElementById('rankUserSelect');
+    if (!select || !medadSupabase) return;
+
+    select.innerHTML = '<option value="">جارٍ تحميل الحسابات...</option>';
+
+    const { data, error } = await medadSupabase.functions.invoke(
+        'clever-processor',
+        {
+            body: { action: 'list_users' }
+        }
+    );
+
+    if (error || !Array.isArray(data?.data)) {
+        select.innerHTML = '<option value="">تعذر تحميل الحسابات</option>';
+        console.warn('Rank users:', error || data);
+        return;
     }
+
+    const users = data.data;
+    select.innerHTML = '';
+
+    users.forEach(p => {
+        const o = document.createElement('option');
+        o.value = p.id;
+        o.textContent = (p.display_name || 'مستخدم') + ' — ' +
+            (medadRankLabels[p.role] || 'مستخدم عادي');
+        o.dataset.role = p.role || 'user';
+        select.appendChild(o);
+    });
+
+    if (!users.length) {
+        select.innerHTML = '<option value="">لا توجد حسابات</option>';
+    }
+
+    select.onchange = () => {
+        const opt = select.selectedOptions[0];
+        if (opt) {
+            document.getElementById('rankValueSelect').value =
+                opt.dataset.role || 'user';
+        }
+    };
+
+    select.dispatchEvent(new Event('change'));
+}
 
     async function loadAdminFeedback() {
         const box=document.getElementById('adminFeedbackList');
