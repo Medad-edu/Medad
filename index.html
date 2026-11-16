@@ -1242,17 +1242,20 @@
             renderResourcesList();
         }
 
-        // Show the selected attachment name in the resource form.
-        document.getElementById('formFile').addEventListener('change', function () {
-            const label = document.getElementById('formFileName');
-            if (this.files && this.files[0]) {
-                label.textContent = 'الملف المختار: ' + this.files[0].name;
-                label.classList.remove('hidden');
-            } else {
-                label.textContent = '';
-                label.classList.add('hidden');
-            }
-        });
+        
+// Show all selected attachment names in the resource form.
+document.getElementById('formFile').addEventListener('change', function () {
+    const label = document.getElementById('formFileName');
+    const files = Array.from(this.files || []);
+
+    if (files.length > 0) {
+        label.textContent = 'الملفات المختارة: ' + files.map(file => file.name).join('، ');
+        label.classList.remove('hidden');
+    } else {
+        label.textContent = '';
+        label.classList.add('hidden');
+    }
+});
 
         // 9. Publish resources to Supabase Storage and the resources table.
         async function submitNewResource(event) {
