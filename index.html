@@ -1445,10 +1445,22 @@ async function submitNewResource(event) {
             .from('medad-files')
             .getPublicUrl(firstFile.path);
 
-        const newRes = mapMedadResource(data, publicResult.data.publicUrl);
+   const newRes = mapMedadResource(data, publicResult.data.publicUrl);
 
-        resources.unshift(newRes);
+// ربط جميع الملفات بالمورد
+newRes.attachments = uploadedFiles.map(file => {
+    const fileUrl = medadSupabase.storage
+        .from('medad-files')
+        .getPublicUrl(file.path).data.publicUrl;
 
+    return {
+        fileName: file.name,
+        filePath: file.path,
+        url: fileUrl
+    };
+});
+
+resources.unshift(newRes);
         document.getElementById('addResourceForm').reset();
         document.getElementById('formFileName').textContent = '';
         document.getElementById('formFileName').classList.add('hidden');
