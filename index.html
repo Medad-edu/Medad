@@ -1216,7 +1216,6 @@ function viewResourceDetails(id) {
     document.getElementById('modalViewBtn').href = viewUrl(res.url);
     document.getElementById('modalDownloadBtn').href = downloadUrl(res.url);
 
-    // جلب جميع المرفقات
     const attachmentsBox = document.getElementById('modalAttachments');
 
     const attachments = res.attachments?.length
@@ -1227,68 +1226,90 @@ function viewResourceDetails(id) {
         }];
 
     attachmentsBox.innerHTML = '';
-    attachmentsBox.className = 'space-y-5 max-h-[65vh] overflow-y-auto pr-1';
+    attachmentsBox.className = 'space-y-6 max-h-[70vh] overflow-y-auto pr-1';
 
     attachments.forEach((file, index) => {
         const url = file.url;
         const fileName = file.fileName || 'ملف مرفق';
         const extension = fileName.split('.').pop().toLowerCase();
 
-        const item = document.createElement('div');
-        item.className = 'border border-slate-200 rounded-xl p-3 space-y-3 bg-white';
+        const item = document.createElement('section');
+        item.className = 'w-full space-y-3';
 
         const heading = document.createElement('div');
         heading.className = 'flex items-center justify-between gap-2';
 
-        const name = document.createElement('span');
+        const name = document.createElement('h4');
         name.className = 'text-sm font-bold text-slate-800 break-all';
-        name.textContent = (index + 1) + '. ' + fileName;
+        name.textContent = (index + 1) + ' / ' + attachments.length + ' — ' + fileName;
 
         heading.appendChild(name);
         item.appendChild(heading);
 
-        // معاينة الصور
+        // عارض الصور
         if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(extension)) {
-            const image = document.createElement('img');
-            image.src = url;
-            image.alt = fileName;
-            image.className = 'w-full max-h-[500px] object-contain rounded-lg bg-slate-50';
-            image.loading = 'lazy';
-            item.appendChild(image);
+            const viewer = document.createElement('iframe');
+            viewer.src = url;
+            viewer.className = 'w-full h-[70vh] min-h-[450px] rounded-xl border border-slate-200 bg-white';
+            viewer.title = fileName;
+
+            const openLink = document.createElement('a');
+            openLink.href = url;
+            openLink.target = '_blank';
+            openLink.rel = 'noopener noreferrer';
+            openLink.className = 'text-sm text-purple-700 font-bold';
+            openLink.textContent = 'فتح الصورة بالحجم الكامل';
+
+            item.append(viewer, openLink);
         }
 
-        // معاينة ملفات PDF
+        // عارض PDF
         else if (extension === 'pdf') {
-            const preview = document.createElement('iframe');
-            preview.src = viewUrl(url);
-            preview.className = 'w-full h-[500px] rounded-lg border border-slate-200';
-            preview.title = fileName;
-            item.appendChild(preview);
+            const viewer = document.createElement('iframe');
+            viewer.src = viewUrl(url);
+            viewer.className = 'w-full h-[70vh] min-h-[450px] rounded-xl border border-slate-200 bg-white';
+            viewer.title = fileName;
+
+            item.appendChild(viewer);
         }
 
-        // الملفات التي لا يدعم المتصفح معاينتها مباشرة
+        // ملفات Word وPowerPoint وغيرها
         else {
+            const viewer = document.createElement('iframe');
+            viewer.src = viewUrl(url);
+            viewer.className = 'w-full h-[70vh] min-h-[450px] rounded-xl border border-slate-200 bg-white';
+            viewer.title = fileName;
+
             const notice = document.createElement('p');
-            notice.className = 'text-xs text-slate-500 bg-slate-50 p-4 rounded-lg';
-            notice.textContent = 'المعاينة المباشرة غير متاحة لهذا النوع من الملفات. يمكنك تحميله.';
-            item.appendChild(notice);
+            notice.className = 'text-xs text-slate-500';
+            notice.textContent = 'إذا لم تظهر المعاينة، استخدم زر التحميل.';
+
+            item.append(viewer, notice);
         }
 
-        const download = document.createElement('a');
-        download.href = downloadUrl(url);
-        download.download = '';
-        download.target = '_blank';
-        download.rel = 'noopener noreferrer';
-        download.className = 'block text-center bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2.5 text-sm font-bold';
-        download.textContent = 'تحميل هذا الملف';
+        const actions = document.createElement('div');
+        actions.className = 'flex gap-2';
 
-        item.appendChild(download);
+        const openBtn = document.createElement('a');
+        openBtn.href = viewUrl(url);
+        openBtn.target = '_blank';
+        openBtn.rel = 'noopener noreferrer';
+        openBtn.className = 'flex-1 text-center bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg py-2.5 text-sm font-bold';
+        openBtn.textContent = 'فتح الملف';
+
+        const downloadBtn = document.createElement('a');
+        downloadBtn.href = downloadUrl(url);
+        downloadBtn.className = 'flex-1 text-center bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2.5 text-sm font-bold';
+        downloadBtn.textContent = 'تحميل الملف';
+
+        actions.append(openBtn, downloadBtn);
+        item.appendChild(actions);
+
         attachmentsBox.appendChild(item);
     });
 
     openModal('detailsModal');
 }
-
 
         // 8. Populate Form Select elements
         function populateFormDropdowns() {
