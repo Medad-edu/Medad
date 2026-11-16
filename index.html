@@ -1258,111 +1258,186 @@ document.getElementById('formFile').addEventListener('change', function () {
 });
 
         // 9. Publish resources to Supabase Storage and the resources table.
-        async function submitNewResource(event) {
-            event.preventDefault();
+       
+async function submitNewResource(event) {
+    event.preventDefault();
 
-            // Capture the signed-in user once so it cannot become null mid-upload.
-            const currentUser = window.medadCurrentUser;
-            if (!currentUser?.id) {
-                closeModal('addResourceModal');
-                openAuthModal();
-                return;
-            }
-            const ownerId = currentUser.id;
+    const currentUser = window.medadCurrentUser;
+    if (!currentUser?.id) {
+        closeModal('addResourceModal');
+        openAuthModal();
+        return;
+    }
 
-            if (!medadSupabase) {
-                alert('تعذر الاتصال بقاعدة البيانات. تحقق من إعدادات Supabase.');
-                return;
-            }
+    const ownerId = currentUser.id;
 
-            const selectedCategory = document.getElementById('formCategory').value;
-            const selectedTerm = document.getElementById('formTerm').value;
-            if (selectedCategory === 'exams' && !['1','2','3'].includes(selectedTerm)) {
-                alert('يرجى تحديد الفصل الدراسي للفرض أو الاختبار.');
-                document.getElementById('examTermWrap').scrollIntoView({behavior:'smooth',block:'center'});
-                return;
-            }
-            const selectedFile = document.getElementById('formFile').files[0];
-            if (!selectedFile) { alert('يرجى اختيار ملف أو صورة أولاً.'); return; }
-            const allowedExtensions = /\.(pdf|png|jpe?g|webp|gif|bmp|docx?|pptx?)$/i;
-            if (!allowedExtensions.test(selectedFile.name)) {
-                alert('نوع الملف غير مدعوم. اختر PDF أو صورة أو Word أو PowerPoint.'); return;
-            }
-            if (selectedFile.size > 20 * 1024 * 1024) {
-                alert('حجم الملف يتجاوز 20 ميغابايت. اختر ملفاً أصغر.'); return;
-            }
+    if (!medadSupabase) {
+        alert('تعذر الاتصال بقاعدة البيانات. تحقق من إعدادات Supabase.');
+        return;
+    }
 
-            const submitButton = document.querySelector('#addResourceForm button[type="submit"]');
-            const originalText = submitButton.textContent;
-            submitButton.disabled = true;
-            submitButton.textContent = 'جارٍ رفع المورد...';
-            let uploadedPath = null;
-            let resourceInserted = false;
+    const selectedCategory = document.getElementById('formCategory').value;
+    const selectedTerm = document.getElementById('formTerm').value;
 
-            try {
-               const safeName = selectedFile.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-                uploadedPath = `${ownerId}/${Date.now()}-${safeName}`;
+    if (selectedCategory === 'exams' && !['1','2','3'].includes(selectedTerm)) {
+        alert('يرجى تحديد الفصل الدراسي للفرض أو الاختبار.');
+        document.getElementById('examTermWrap').scrollIntoView({behavior:'smooth',block:'center'});
+        return;
+    }
 
-                const { error: uploadError } = await medadSupabase.storage
-                    .from('medad-files')
-                    .upload(uploadedPath, selectedFile, {
-                        cacheControl: '3600',
-                        upsert: false,
-                        contentType: selectedFile.type || 'application/octet-stream'
-                    });
-                if (uploadError) throw uploadError;
+    const selectedFiles = Array.from(document.getElementById('formFile').files || []);
 
-                const publicResult = medadSupabase.storage.from('medad-files').getPublicUrl(uploadedPath);
-                const payload = {
-                    owner_id: ownerId,
-                    title: document.getElementById('formTitle').value.trim(),
-                    subject_id: document.getElementById('formSubject').value,
-                    year_id: document.getElementById('formYear').value,
-                    category_id: document.getElementById('formCategory').value,
-                    term: document.getElementById('formCategory').value === 'exams' ? Number(document.getElementById('formTerm').value) : null,
-                    author: document.getElementById('formAuthor').value.trim() || window.medadCurrentProfile?.display_name || 'مساهم متطوع',
-                    file_name: selectedFile.name,
-                    file_path: uploadedPath,
-                    description: document.getElementById('formDesc').value.trim()
-                };
+    if (selectedFiles.length === 0) {
+        alert('يرجى اختيار ملف أو صورة أولاً.');
+        return;
+    }
 
-                const { data, error: insertError } = await medadSupabase
-                    .from('resources').insert(payload).select().single();
-                if (insertError) throw insertError;
-                if (!data || !data.id) {
-                    throw new Error('تم إرسال المورد إلى قاعدة البيانات لكن لم تُرجع بياناته. نحتاج فحص صلاحية SELECT على جدول resources.');
-                }
-                resourceInserted = true;
+    const allowedExtensions = /\.(pdf|png|jpe?g|webp|gif|bmp|docx?|pptx?)$/i;
 
-                const newRes = mapMedadResource(data, publicResult.data.publicUrl);
-                resources.unshift(newRes);
-                document.getElementById('addResourceForm').reset();
-                document.getElementById('formFileName').textContent = '';
-                document.getElementById('formFileName').classList.add('hidden');
-                closeModal('addResourceModal');
-                alert('تم رفع المورد ونشره في مكتبة مِداد بنجاح.');
+    for (const file of selectedFiles) {
+        if (!allowedExtensions.test(file.name)) {
+            alert('الملف "' + file.name + '" نوعه غير مدعوم.');
+            return;
+        }
 
-                if (currentSelection.subject && currentSelection.year && currentSelection.category) {
-                    if (currentSelection.subject.id === newRes.subjectId && currentSelection.year.id === newRes.yearId && currentSelection.category.id === newRes.categoryId) renderResourcesList();
-                    else renderCategories();
-                } else {
-                    renderCategories();
-                }
-            } catch (error) {
-                // Do not automatically delete the uploaded file here:
-                // the database insert may already have succeeded, and deleting it
-                // could leave a resource record pointing to a missing file.
-                console.error('Medad resource publish failed:', error);
-                if (resourceInserted) {
-                    alert('تم حفظ المورد، لكن حدث خطأ أثناء تحديث العرض. أعد تحميل الصفحة للتحقق من ظهوره.');
-                } else {
-                    alert('تعذر إكمال نشر المورد: ' + (error.message || 'حدث خطأ غير معروف') + ' إذا ظهر المورد في المكتبة، فلا تعاود نشره مرة أخرى.');
-                }
-            } finally {
-                submitButton.disabled = false;
-                submitButton.textContent = originalText;
+        if (file.size > 20 * 1024 * 1024) {
+            alert('حجم الملف "' + file.name + '" يتجاوز 20 ميغابايت.');
+            return;
+        }
+    }
+
+    const submitButton = document.querySelector('#addResourceForm button[type="submit"]');
+    const originalText = submitButton.textContent;
+
+    submitButton.disabled = true;
+    submitButton.textContent = 'جارٍ رفع الملفات...';
+
+    const uploadedFiles = [];
+    let resourceInserted = false;
+
+    try {
+        // رفع جميع الملفات إلى Storage
+        for (let i = 0; i < selectedFiles.length; i++) {
+            const file = selectedFiles[i];
+            const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
+            const uploadedPath = `${ownerId}/${Date.now()}-${i}-${safeName}`;
+
+            const { error: uploadError } = await medadSupabase.storage
+                .from('medad-files')
+                .upload(uploadedPath, file, {
+                    cacheControl: '3600',
+                    upsert: false,
+                    contentType: file.type || 'application/octet-stream'
+                });
+
+            if (uploadError) throw uploadError;
+
+            uploadedFiles.push({
+                name: file.name,
+                path: uploadedPath
+            });
+        }
+
+        // الملف الأول يبقى في جدول الموارد للحفاظ على التوافق القديم
+        const firstFile = uploadedFiles[0];
+
+        const payload = {
+            owner_id: ownerId,
+            title: document.getElementById('formTitle').value.trim(),
+            subject_id: document.getElementById('formSubject').value,
+            year_id: document.getElementById('formYear').value,
+            category_id: selectedCategory,
+            term: selectedCategory === 'exams' ? Number(selectedTerm) : null,
+            author: document.getElementById('formAuthor').value.trim() ||
+                window.medadCurrentProfile?.display_name || 'مساهم متطوع',
+            file_name: firstFile.name,
+            file_path: firstFile.path,
+            description: document.getElementById('formDesc').value.trim()
+        };
+
+        const { data, error: insertError } = await medadSupabase
+            .from('resources')
+            .insert(payload)
+            .select()
+            .single();
+
+        if (insertError) throw insertError;
+
+        if (!data || !data.id) {
+            throw new Error('لم يتم إرجاع بيانات المورد بعد الحفظ.');
+        }
+
+        resourceInserted = true;
+
+        // حفظ بقية الملفات في جدول المرفقات
+        const extraAttachments = uploadedFiles.slice(1).map(file => ({
+            resource_id: data.id,
+            file_name: file.name,
+            file_path: file.path
+        }));
+
+        if (extraAttachments.length > 0) {
+            const { error: attachmentError } = await medadSupabase
+                .from('resource_attachments')
+                .insert(extraAttachments);
+
+            if (attachmentError) {
+                const extraPaths = extraAttachments.map(file => file.file_path);
+                await medadSupabase.storage.from('medad-files').remove(extraPaths);
+                throw new Error('تم حفظ المورد والملف الأول، لكن تعذر حفظ بقية المرفقات: ' + attachmentError.message);
             }
         }
+
+        const publicResult = medadSupabase.storage
+            .from('medad-files')
+            .getPublicUrl(firstFile.path);
+
+        const newRes = mapMedadResource(data, publicResult.data.publicUrl);
+
+        resources.unshift(newRes);
+
+        document.getElementById('addResourceForm').reset();
+        document.getElementById('formFileName').textContent = '';
+        document.getElementById('formFileName').classList.add('hidden');
+
+        closeModal('addResourceModal');
+
+        alert('تم رفع المورد وحفظ ' + uploadedFiles.length + ' ملف بنجاح.');
+
+        if (currentSelection.subject && currentSelection.year && currentSelection.category) {
+            if (
+                currentSelection.subject.id === newRes.subjectId &&
+                currentSelection.year.id === newRes.yearId &&
+                currentSelection.category.id === newRes.categoryId
+            ) {
+                renderResourcesList();
+            } else {
+                renderCategories();
+            }
+        } else {
+            renderCategories();
+        }
+
+    } catch (error) {
+        console.error('Medad resource publish failed:', error);
+
+        // إذا لم يُحفظ المورد، نحذف الملفات التي رُفعت لتجنب ترك ملفات يتيمة
+        if (!resourceInserted && uploadedFiles.length > 0) {
+            const paths = uploadedFiles.map(file => file.path);
+            await medadSupabase.storage.from('medad-files').remove(paths);
+        }
+
+        if (resourceInserted) {
+            alert(error.message || 'تم حفظ المورد، لكن حدث خطأ أثناء حفظ المرفقات.');
+        } else {
+            alert('تعذر إكمال نشر المورد: ' + (error.message || 'حدث خطأ غير معروف'));
+        }
+
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = originalText;
+    }
+}
 
         function mapMedadResource(row, publicUrl) {
             const url = publicUrl || medadSupabase.storage.from('medad-files').getPublicUrl(row.file_path).data.publicUrl;
