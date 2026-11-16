@@ -429,7 +429,7 @@
             <!-- STEP 2: YEARS -->
             <div id="stepYears" class="hidden">
                 <div class="mb-6 flex items-center gap-4">
-                    <button onclick="resetNavigation()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shadow-xs">
+                    <button onclick="backToSubjects()" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors shadow-xs">
                         <i class="fa-solid fa-arrow-right"></i>
                     </button>
                     <div>
@@ -681,6 +681,8 @@
                         <select required id="formSubject" class="w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
                             <!-- Populated dynamically via JS -->
                         </select>
+                        <select id="formBranch" class="hidden mt-2 w-full bg-slate-50 border border-slate-200 rounded-xl py-2 px-3 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm transition-all">
+                        </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-1.5">السنة الدراسية *</label>
@@ -799,7 +801,24 @@
             { id: 'physics', name: 'الفيزياء', icon: 'fa-atom', color: 'from-cyan-400 to-sky-500' },
             { id: 'islamic', name: 'العلوم الإسلامية', icon: 'fa-mosque', color: 'from-teal-500 to-green-600' },
             { id: 'philosophy', name: 'الفلسفة', icon: 'fa-brain', color: 'from-violet-400 to-fuchsia-600' },
-            { id: 'history_geo', name: 'التاريخ والجغرافيا', icon: 'fa-map-location-dot', color: 'from-orange-400 to-amber-600' }
+            { id: 'history_geo', name: 'التاريخ والجغرافيا', icon: 'fa-map-location-dot', color: 'from-orange-400 to-amber-600' },
+
+            // --- التسيير والاقتصاد (فروعها) ---
+            { id: 'economy_mgmt', name: 'الاقتصاد والمناجمنت', icon: 'fa-chart-line', color: 'from-lime-400 to-green-600', group: 'economy' },
+            { id: 'accounting_finance', name: 'التسيير المحاسبي والمالي', icon: 'fa-file-invoice-dollar', color: 'from-yellow-400 to-amber-600', group: 'economy' },
+            { id: 'law', name: 'القانون', icon: 'fa-scale-balanced', color: 'from-sky-400 to-blue-600', group: 'economy' },
+
+            // --- الهندسة (فروعها) ---
+            { id: 'eng_electrical', name: 'الهندسة الكهربائية', icon: 'fa-bolt', color: 'from-yellow-300 to-orange-500', group: 'engineering' },
+            { id: 'eng_civil', name: 'الهندسة المدنية', icon: 'fa-building', color: 'from-stone-400 to-slate-600', group: 'engineering' },
+            { id: 'eng_mechanical', name: 'الهندسة الميكانيكية', icon: 'fa-gears', color: 'from-slate-400 to-zinc-600', group: 'engineering' },
+            { id: 'eng_process', name: 'هندسة الطرائق', icon: 'fa-flask-vial', color: 'from-teal-400 to-cyan-600', group: 'engineering' }
+        ];
+
+        // Parent cards: clicking one shows its branches (subjects having group: <id>)
+        const subjectGroups = [
+            { id: 'economy', name: 'التسيير والاقتصاد', icon: 'fa-coins', color: 'from-lime-400 to-emerald-600' },
+            { id: 'engineering', name: 'الهندسة', icon: 'fa-helmet-safety', color: 'from-amber-400 to-orange-600' }
         ];
 
         const years = [
@@ -830,22 +849,47 @@
             populateFormDropdowns();
         });
 
-        // 1. Render Subject Cards
-        function renderSubjects() {
+        // 1. Render Subject Cards (top level, or the branches of one group)
+        function makeSubjectCard(item, onClick) {
+            const card = document.createElement('div');
+            card.className = "card-pop bg-white p-5 rounded-2xl border border-slate-100 shadow-xs cursor-pointer flex flex-col items-center text-center gap-3 group";
+            card.onclick = onClick;
+            card.innerHTML = `
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${item.color} flex items-center justify-center text-white text-xl shadow-xs group-hover:scale-110 transition-transform">
+                    <i class="fa-solid ${item.icon}"></i>
+                </div>
+                <span class="font-bold text-sm text-slate-700 group-hover:text-purple-600 transition-colors">${item.name}</span>
+            `;
+            return card;
+        }
+
+        function renderSubjects(groupId) {
             const grid = document.getElementById('subjectsGrid');
             grid.innerHTML = '';
-            subjects.forEach(sub => {
-                const card = document.createElement('div');
-                card.className = "card-pop bg-white p-5 rounded-2xl border border-slate-100 shadow-xs cursor-pointer flex flex-col items-center text-center gap-3 group";
-                card.onclick = () => selectSubject(sub);
-                card.innerHTML = `
-                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br ${sub.color} flex items-center justify-center text-white text-xl shadow-xs group-hover:scale-110 transition-transform">
-                        <i class="fa-solid ${sub.icon}"></i>
-                    </div>
-                    <span class="font-bold text-sm text-slate-700 group-hover:text-purple-600 transition-colors">${sub.name}</span>
-                `;
-                grid.appendChild(card);
-            });
+
+            if (groupId) {
+                const group = subjectGroups.find(g => g.id === groupId);
+                const head = document.createElement('div');
+                head.className = 'col-span-full flex items-center gap-3 mb-1';
+                head.innerHTML = `
+                    <button type="button" class="w-10 h-10 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors">
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                    <div>
+                        <div class="text-lg font-bold text-slate-900">${group.name}</div>
+                        <div class="text-xs text-slate-500">اختر الفرع.</div>
+                    </div>`;
+                head.querySelector('button').onclick = () => renderSubjects();
+                grid.appendChild(head);
+                subjects.filter(s => s.group === groupId)
+                    .forEach(sub => grid.appendChild(makeSubjectCard(sub, () => selectSubject(sub))));
+                return;
+            }
+
+            subjects.filter(s => !s.group)
+                .forEach(sub => grid.appendChild(makeSubjectCard(sub, () => selectSubject(sub))));
+            subjectGroups
+                .forEach(g => grid.appendChild(makeSubjectCard(g, () => renderSubjects(g.id))));
         }
 
         // 2. Step 1 -> Step 2: Subject Selected
@@ -1098,7 +1142,15 @@
             document.getElementById('stepYears').classList.add('hidden');
             document.getElementById('stepCategories').classList.add('hidden');
             document.getElementById('stepResources').classList.add('hidden');
+            renderSubjects();
             clearSearch();
+        }
+
+        // Back from the years screen: return to the branches list if the subject was a branch
+        function backToSubjects() {
+            const g = currentSelection.subject?.group || null;
+            resetNavigation();
+            if (g) renderSubjects(g);
         }
 
         function backToYears() {
@@ -1190,9 +1242,6 @@
 
         // View Resource Specific Details
     
-
-
-
 function viewResourceDetails(id) {
     const res = resources.find(r => r.id === id);
     if (!res) return;
@@ -1516,14 +1565,49 @@ function viewResourceDetails(id) {
         function populateFormDropdowns() {
             const subSelect = document.getElementById('formSubject');
             const yrSelect = document.getElementById('formYear');
-            
-            subjects.forEach(s => {
+            subSelect.innerHTML = '';
+            yrSelect.innerHTML = '';
+
+            // Top-level subjects, then the parent groups (their branches show in a 2nd select)
+            subjects.filter(s => !s.group).forEach(s => {
                 subSelect.innerHTML += `<option value="${s.id}">${s.name}</option>`;
+            });
+            subjectGroups.forEach(g => {
+                subSelect.innerHTML += `<option value="group:${g.id}">${g.name}</option>`;
             });
 
             years.forEach(y => {
                 yrSelect.innerHTML += `<option value="${y.id}">${y.name}</option>`;
             });
+
+            subSelect.addEventListener('change', updateBranchSelect);
+            updateBranchSelect();
+        }
+
+        // Show the branch select only when a parent group is chosen
+        function updateBranchSelect() {
+            const subValue = document.getElementById('formSubject').value;
+            const branchSelect = document.getElementById('formBranch');
+            if (subValue.startsWith('group:')) {
+                const gid = subValue.slice(6);
+                branchSelect.innerHTML = '<option value="">اختر الفرع...</option>' +
+                    subjects.filter(s => s.group === gid)
+                        .map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+                branchSelect.required = true;
+                branchSelect.classList.remove('hidden');
+            } else {
+                branchSelect.innerHTML = '';
+                branchSelect.required = false;
+                branchSelect.classList.add('hidden');
+            }
+        }
+
+        // The real subject id to save: the branch if a group is selected, else the subject
+        function getFormSubjectId() {
+            const subValue = document.getElementById('formSubject').value;
+            return subValue.startsWith('group:')
+                ? document.getElementById('formBranch').value
+                : subValue;
         }
 
         // Show a clear semester selector only for exams and tests.
@@ -1539,6 +1623,7 @@ function viewResourceDetails(id) {
             if (!isExam) chooseResourceTerm('');
         });
         document.getElementById('addResourceForm').addEventListener('reset', () => {
+            setTimeout(updateBranchSelect, 0);
             document.getElementById('examTermWrap').classList.add('hidden');
             document.getElementById('formTerm').required = false;
             document.getElementById('formTerm').value = '';
@@ -1653,7 +1738,7 @@ async function submitNewResource(event) {
         const payload = {
             owner_id: ownerId,
             title: document.getElementById('formTitle').value.trim(),
-            subject_id: document.getElementById('formSubject').value,
+            subject_id: getFormSubjectId(),
             year_id: document.getElementById('formYear').value,
             category_id: selectedCategory,
             term: selectedCategory === 'exams' ? Number(selectedTerm) : null,
