@@ -1458,19 +1458,76 @@ async function submitNewResource(event) {
             };
         }
 
-        async function loadMedadResources() {
-            if (!medadSupabase) return;
-            const { data, error } = await medadSupabase.from('resources').select('*').order('created_at', { ascending: false });
-            if (error) {
-                console.error('Medad resources load failed:', error.message);
-                return;
-            }
-            resources = (data || []).map(row => mapMedadResource(row));
-            renderCategories();
-            if (currentSelection.subject && currentSelection.year && currentSelection.category) renderResourcesList();
-            const search = document.getElementById('globalSearch')?.value || document.getElementById('globalSearchMobile')?.value || '';
-            if (search.trim()) handleSearch(search);
+       
+async function loadMedadResources() {
+    if (!medadSupabase) return;
+
+    const { data, error } = await medadSupabase
+        .from('resources')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Medad resources load failed:', error.message);
+        return;
+    }
+
+    const { data: attachments, error: attachmentsError } = await medadSupabase
+        .from('resource_attachments')
+        .select('*');
+
+    if (attachmentsError) {
+        console.error('Medad attachments load failed:', attachmentsError.message);
+        return;
+    }
+
+    const attachmentsByResource = {};
+
+    (attachments || []).forEach(file => {
+        if (!attachmentsByResource[file.resource_id]) {
+            attachmentsByResource[file.resource_id] = [];
         }
+
+        const publicUrl = medadSupabase.storage
+            .from('medad-files')
+            .getPublicUrl(file.file_path).data.publicUrl;
+
+        attachmentsByResource[file.resource_id].push({
+            fileName: file.file_name,
+            filePath: file.file_path,
+            url: publicUrl
+        });
+    });
+
+    resources = (data || []).map(row => {
+        const resource = mapMedadResource(row);
+
+        const mainFile = {
+            fileName: row.file_name,
+            filePath: row.file_path,
+            url: resource.url
+        };
+
+        resource.attachments = [
+            mainFile,
+            ...(attachmentsByResource[row.id] || [])
+        ];
+
+        return resource;
+    });
+
+    renderCategories();
+
+    if (currentSelection.subject && currentSelection.year && currentSelection.category) {
+        renderResourcesList();
+    }
+
+    const search = document.getElementById('globalSearch')?.value ||
+        document.getElementById('globalSearchMobile')?.value || '';
+
+    if (search.trim()) handleSearch(search);
+}
+
 
         async function deletePublishedResource(resource) {
             const isAdmin = window.medadCurrentProfile?.role === 'admin';
