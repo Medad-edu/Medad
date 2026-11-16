@@ -1188,29 +1188,73 @@
         }
 
         // View Resource Specific Details
-        function viewResourceDetails(id) {
-            const res = resources.find(r => r.id === id);
-            if(!res) return;
+       function viewResourceDetails(id) {
+    const res = resources.find(r => r.id === id);
+    if (!res) return;
 
-            const subName = subjects.find(s => s.id === res.subjectId)?.name || '';
-            const yrName = years.find(y => y.id === res.yearId)?.name || '';
-            const catName = categories.find(c => c.id === res.categoryId)?.name || '';
+    const subName = subjects.find(s => s.id === res.subjectId)?.name || '';
+    const yrName = years.find(y => y.id === res.yearId)?.name || '';
+    const catName = categories.find(c => c.id === res.categoryId)?.name || '';
 
-            activeQuestionResourceId = res.id;
-            loadResourceQuestions(res.id);
-            document.getElementById('questionNotice').textContent = '';
-            document.getElementById('modalTitle').innerText = res.title;
-            document.getElementById('modalBadge').innerText = catName + (res.categoryId === 'exams' && res.term ? ' • الفصل ' + res.term : '');
-            document.getElementById('modalSubject').innerText = subName;
-            document.getElementById('modalYear').innerText = yrName;
-            document.getElementById('modalDesc').innerText = res.desc || 'لا يوجد وصف تفصيلي متاح.';
-            document.getElementById('modalAuthor').innerText = res.author || 'أحد فاعلي الخير';
-            document.getElementById('modalDate').innerText = res.date;
-            document.getElementById('modalViewBtn').href = viewUrl(res.url);
-            document.getElementById('modalDownloadBtn').href = downloadUrl(res.url);
+    activeQuestionResourceId = res.id;
+    loadResourceQuestions(res.id);
 
-            openModal('detailsModal');
-        }
+    document.getElementById('questionNotice').textContent = '';
+    document.getElementById('modalTitle').innerText = res.title;
+    document.getElementById('modalBadge').innerText = catName + (res.categoryId === 'exams' && res.term ? ' • الفصل ' + res.term : '');
+    document.getElementById('modalSubject').innerText = subName;
+    document.getElementById('modalYear').innerText = yrName;
+    document.getElementById('modalDesc').innerText = res.desc || 'لا يوجد وصف تفصيلي متاح.';
+    document.getElementById('modalAuthor').innerText = res.author || 'أحد فاعلي الخير';
+    document.getElementById('modalDate').innerText = res.date;
+
+    document.getElementById('modalViewBtn').href = viewUrl(res.url);
+    document.getElementById('modalDownloadBtn').href = downloadUrl(res.url);
+
+    // عرض جميع الملفات والمرفقات
+    const attachmentsBox = document.getElementById('modalAttachments');
+    const attachments = res.attachments || [{
+        fileName: res.fileName || 'الملف الرئيسي',
+        url: res.url
+    }];
+
+    attachmentsBox.innerHTML = '';
+
+    attachments.forEach((file, index) => {
+        const item = document.createElement('div');
+        item.className = 'flex items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-100';
+
+        const name = document.createElement('span');
+        name.className = 'text-xs text-slate-700 font-medium truncate';
+        name.textContent = (index + 1) + '. ' + (file.fileName || 'ملف مرفق');
+
+        const actions = document.createElement('div');
+        actions.className = 'flex items-center gap-2 shrink-0';
+
+        const viewLink = document.createElement('a');
+        viewLink.href = viewUrl(file.url);
+        viewLink.target = '_blank';
+        viewLink.rel = 'noopener noreferrer';
+        viewLink.className = 'text-purple-600 text-xs font-bold';
+        viewLink.textContent = 'عرض';
+
+        const downloadLink = document.createElement('a');
+        downloadLink.href = downloadUrl(file.url);
+        downloadLink.download = '';
+        downloadLink.target = '_blank';
+        downloadLink.rel = 'noopener noreferrer';
+        downloadLink.className = 'text-slate-600 text-xs font-bold';
+        downloadLink.textContent = 'تحميل';
+
+        actions.appendChild(viewLink);
+        actions.appendChild(downloadLink);
+        item.appendChild(name);
+        item.appendChild(actions);
+        attachmentsBox.appendChild(item);
+    });
+
+    openModal('detailsModal');
+}
 
         // 8. Populate Form Select elements
         function populateFormDropdowns() {
