@@ -1192,6 +1192,7 @@
     
 
 
+
 function viewResourceDetails(id) {
     const res = resources.find(r => r.id === id);
     if (!res) return;
@@ -1232,7 +1233,7 @@ function viewResourceDetails(id) {
     const attachmentsBox = document.getElementById('modalAttachments');
 
     attachmentsBox.innerHTML = '';
-    attachmentsBox.className = 'space-y-5  pr-1';
+    attachmentsBox.className = 'space-y-5 pr-1';
 
     attachments.forEach((file, index) => {
         const url = file.url;
@@ -1297,6 +1298,7 @@ function viewResourceDetails(id) {
     viewBtn.onclick = (event) => {
         event.preventDefault();
 
+        // إذا كان هناك ملف واحد فقط
         if (attachments.length === 1) {
             window.open(viewUrl(attachments[0].url), '_blank');
             return;
@@ -1309,30 +1311,7 @@ function viewResourceDetails(id) {
             return;
         }
 
-        const filesHTML = attachments.map((file, index) => {
-            const name = file.fileName || 'ملف مرفق';
-            const url = file.url;
-            const ext = name.split('.').pop().toLowerCase();
-
-            let preview = '';
-
-            if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(ext)) {
-                preview = `<img src="${url}" alt="${name}" style="width:100%;max-height:450px;object-fit:contain;">`;
-            } else if (ext === 'pdf') {
-                preview = `<iframe src="${viewUrl(url)}" style="width:100%;height:450px;border:0;"></iframe>`;
-            } else {
-                preview = `<p>المعاينة غير متاحة لهذا النوع من الملفات.</p>`;
-            }
-
-            return `
-                <section class="file">
-                    <h3>${index + 1} / ${attachments.length} — ${name}</h3>
-                    ${preview}
-                    <p><a href="${downloadUrl(url)}">تحميل الملف</a></p>
-                </section>
-            `;
-        }).join('');
-
+        // إنشاء صفحة العرض
         viewerWindow.document.write(`
             <!DOCTYPE html>
             <html lang="ar" dir="rtl">
@@ -1340,14 +1319,20 @@ function viewResourceDetails(id) {
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <title>عرض ملفات المورد</title>
+
                 <style>
                     body {
                         margin: 0;
                         padding: 15px;
-                        background: #f1f5f9;
+                        background: #e2e8f0;
                         font-family: Arial, sans-serif;
                     }
-                    h2 { text-align: center; color: #334155; }
+
+                    h2 {
+                        text-align: center;
+                        color: #334155;
+                    }
+
                     .file {
                         background: white;
                         padding: 18px;
@@ -1355,18 +1340,168 @@ function viewResourceDetails(id) {
                         max-width: 900px;
                         border-radius: 12px;
                     }
-                    h3 { font-size: 15px; color: #334155; }
-                    a { color: #6d28d9; font-weight: bold; }
+
+                    .page {
+                        display: block;
+                        width: 100%;
+                        height: auto;
+                        margin: 10px auto;
+                        box-shadow: 0 2px 8px #0002;
+                    }
+
+                    .download {
+                        display: inline-block;
+                        background: #6d28d9;
+                        color: white;
+                        padding: 10px 18px;
+                        border-radius: 8px;
+                        text-decoration: none;
+                        margin-top: 12px;
+                    }
+
+                    .error {
+                        color: #b91c1c;
+                        padding: 12px;
+                    }
                 </style>
             </head>
+
             <body>
-                <h2>${res.title}</h2>
-                ${filesHTML}
+                <h2 id="documentTitle"></h2>
+                <div id="filesContainer"></div>
             </body>
             </html>
         `);
 
         viewerWindow.document.close();
+
+        const doc = viewerWindow.document;
+        doc.getElementById('documentTitle').textContent = res.title;
+
+        const container = doc.getElementById('filesContainer');
+
+        // تجهيز الملفات حسب ترتيبها
+        const pdfFiles = [];
+
+        attachments.forEach((file, index) => {
+            const url = safeUrl(file.url);
+            const name = file.fileName || 'ملف مرفق';
+            const ext = name.split('.').pop().toLowerCase();
+
+            const section = doc.createElement('section');
+            section.className = 'file';
+
+            const heading = doc.createElement('h3');
+            heading.textContent =
+                (index + 1) + ' / ' + attachments.length + ' — ' + name;
+
+            section.appendChild(heading);
+
+            if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(ext)) {
+                const image = doc.createElement('img');
+                image.src = url;
+                image.alt = name;
+                image.className = 'page';
+                section.appendChild(image);
+
+            } else if (ext === 'pdf') {
+                const loading = doc.createElement('p');
+                loading.textContent = 'جارٍ تحميل صفحات الملف...';
+                section.appendChild(loading);
+
+                pdfFiles.push({
+                    url,
+                    loading,
+                    section
+                });
+
+            } else {
+                const notice = doc.createElement('p');
+                notice.textContent = 'المعاينة غير متاحة لهذا النوع من الملفات.';
+                section.appendChild(notice);
+            }
+
+            const download = doc.createElement('a');
+            download.href = downloadUrl(url);
+            download.className = 'download';
+            download.textContent = 'تحميل الملف';
+
+            section.appendChild(download);
+            container.appendChild(section);
+        });
+
+        // تحميل مكتبة PDF.js
+        const pdfScript = doc.createElement('script');
+
+        pdfScript.src =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+
+        pdfScript.onload = async () => {
+            const pdfjs = viewerWindow.pdfjsLib;
+
+            pdfjs.GlobalWorkerOptions.workerSrc =
+                'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+            // عرض صفحات ملفات PDF بالتتابع
+            for (const file of pdfFiles) {
+                try {
+                    const pdf = await pdfjs.getDocument(file.url).promise;
+
+                    file.loading.remove();
+
+                    for (
+                        let pageNumber = 1;
+                        pageNumber <= pdf.numPages;
+                        pageNumber++
+                    ) {
+                        const page = await pdf.getPage(pageNumber);
+
+                        const baseViewport = page.getViewport({ scale: 1 });
+
+                        const scale = Math.min(
+                            1.5,
+                            850 / baseViewport.width
+                        );
+
+                        const viewport = page.getViewport({ scale });
+
+                        const canvas = doc.createElement('canvas');
+                        const context = canvas.getContext('2d');
+
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        canvas.className = 'page';
+
+                        file.section.insertBefore(
+                            canvas,
+                            file.section.querySelector('.download')
+                        );
+
+                        await page.render({
+                            canvasContext: context,
+                            viewport: viewport
+                        }).promise;
+                    }
+
+                } catch (error) {
+                    console.error('PDF preview error:', error);
+
+                    file.loading.textContent =
+                        'تعذرت معاينة الملف. يمكنك تحميله.';
+                    file.loading.className = 'error';
+                }
+            }
+        };
+
+        pdfScript.onerror = () => {
+            pdfFiles.forEach(file => {
+                file.loading.textContent =
+                    'تعذر تحميل أداة عرض ملفات PDF. يمكنك تحميل الملف.';
+                file.loading.className = 'error';
+            });
+        };
+
+        doc.head.appendChild(pdfScript);
     };
 
     viewBtn.href = attachments.length === 1
@@ -1375,6 +1510,7 @@ function viewResourceDetails(id) {
 
     openModal('detailsModal');
 }
+
 
         // 8. Populate Form Select elements
         function populateFormDropdowns() {
