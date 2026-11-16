@@ -1529,26 +1529,65 @@ async function loadMedadResources() {
 }
 
 
-        async function deletePublishedResource(resource) {
-            const isAdmin = window.medadCurrentProfile?.role === 'admin';
-            const isOwner = resource.ownerId === window.medadCurrentUser?.id;
-            if (!isAdmin && !isOwner) { alert('لا تملك صلاحية حذف هذا المورد.'); return; }
-            if (!confirm('هل تريد حذف المورد «' + resource.title + '» نهائياً؟')) return;
-            try {
-                const { error: storageError } = await medadSupabase.storage.from('medad-files').remove([resource.filePath || '']);
-                if (storageError) throw storageError;
-                const { error: rowError } = await medadSupabase.from('resources').delete().eq('id', resource.id);
-                if (rowError) throw rowError;
-                resources = resources.filter(item => item.id !== resource.id);
-                renderCategories();
-                if (currentSelection.subject && currentSelection.year && currentSelection.category) renderResourcesList();
-                alert('تم حذف المورد.');
-            } catch (error) {
-                console.error('Medad resource delete failed:', error);
-                alert('تعذر حذف المورد: ' + (error.message || 'حدث خطأ غير معروف'));
-            }
+      async function deletePublishedResource(resource) {
+    const isAdmin = window.medadCurrentProfile?.role === 'admin';
+    const isOwner = resource.ownerId === window.medadCurrentUser?.id;
+
+    if (!isAdmin && !isOwner) {
+        alert('لا تملك صلاحية حذف هذا المورد.');
+        return;
+    }
+
+    if (!confirm('هل تريد حذف المورد «' + resource.title + '» نهائياً؟')) return;
+
+    try {
+        // جلب جميع المرفقات التابعة للمورد
+        const { data: attachments, error: attachmentsError } = await medadSupabase
+            .from('resource_attachments')
+            .select('file_path')
+            .eq('resource_id', resource.id);
+
+        if (attachmentsError) throw attachmentsError;
+
+        // جمع مسارات الملف الرئيسي وبقية المرفقات
+        const filePaths = [
+            resource.filePath,
+            ...(attachments || []).map(file => file.file_path)
+        ].filter(Boolean);
+
+        // حذف جميع الملفات من Storage
+        if (filePaths.length > 0) {
+            const { error: storageError } = await medadSupabase
+                .storage
+                .from('medad-files')
+                .remove(filePaths);
+
+            if (storageError) throw storageError;
         }
 
+        // حذف المورد، والمرفقات المرتبطة به تُحذف تلقائياً
+        const { error: rowError } = await medadSupabase
+            .from('resources')
+            .delete()
+            .eq('id', resource.id);
+
+        if (rowError) throw rowError;
+
+        resources = resources.filter(item => item.id !== resource.id);
+
+        renderCategories();
+
+        if (currentSelection.subject && currentSelection.year && currentSelection.category) {
+            renderResourcesList();
+        }
+
+        alert('تم حذف المورد وجميع ملفاته بنجاح.');
+
+    } catch (error) {
+        console.error('Medad resource delete failed:', error);
+        alert('تعذر حذف المورد: ' + (error.message || 'حدث خطأ غير معروف'));
+    }
+}
         // Personal file storage (IndexedDB keeps file data locally in this browser).
         const MEDAD_FILES_DB = 'medad_personal_files';
         const MEDAD_FILES_STORE = 'files';
