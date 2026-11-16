@@ -1188,7 +1188,8 @@
         }
 
         // View Resource Specific Details
-       function viewResourceDetails(id) {
+    
+function viewResourceDetails(id) {
     const res = resources.find(r => r.id === id);
     if (!res) return;
 
@@ -1201,60 +1202,93 @@
 
     document.getElementById('questionNotice').textContent = '';
     document.getElementById('modalTitle').innerText = res.title;
-    document.getElementById('modalBadge').innerText = catName + (res.categoryId === 'exams' && res.term ? ' • الفصل ' + res.term : '');
+    document.getElementById('modalBadge').innerText =
+        catName + (res.categoryId === 'exams' && res.term ? ' • الفصل ' + res.term : '');
+
     document.getElementById('modalSubject').innerText = subName;
     document.getElementById('modalYear').innerText = yrName;
-    document.getElementById('modalDesc').innerText = res.desc || 'لا يوجد وصف تفصيلي متاح.';
-    document.getElementById('modalAuthor').innerText = res.author || 'أحد فاعلي الخير';
+    document.getElementById('modalDesc').innerText =
+        res.desc || 'لا يوجد وصف تفصيلي متاح.';
+    document.getElementById('modalAuthor').innerText =
+        res.author || 'أحد فاعلي الخير';
     document.getElementById('modalDate').innerText = res.date;
 
     document.getElementById('modalViewBtn').href = viewUrl(res.url);
     document.getElementById('modalDownloadBtn').href = downloadUrl(res.url);
 
-    // عرض جميع الملفات والمرفقات
+    // جلب جميع المرفقات
     const attachmentsBox = document.getElementById('modalAttachments');
-    const attachments = res.attachments || [{
-        fileName: res.fileName || 'الملف الرئيسي',
-        url: res.url
-    }];
+
+    const attachments = res.attachments?.length
+        ? res.attachments
+        : [{
+            fileName: res.fileName || 'الملف الرئيسي',
+            url: res.url
+        }];
 
     attachmentsBox.innerHTML = '';
+    attachmentsBox.className = 'space-y-5 max-h-[65vh] overflow-y-auto pr-1';
 
     attachments.forEach((file, index) => {
+        const url = file.url;
+        const fileName = file.fileName || 'ملف مرفق';
+        const extension = fileName.split('.').pop().toLowerCase();
+
         const item = document.createElement('div');
-        item.className = 'flex items-center justify-between gap-2 p-3 bg-slate-50 rounded-lg border border-slate-100';
+        item.className = 'border border-slate-200 rounded-xl p-3 space-y-3 bg-white';
+
+        const heading = document.createElement('div');
+        heading.className = 'flex items-center justify-between gap-2';
 
         const name = document.createElement('span');
-        name.className = 'text-xs text-slate-700 font-medium truncate';
-        name.textContent = (index + 1) + '. ' + (file.fileName || 'ملف مرفق');
+        name.className = 'text-sm font-bold text-slate-800 break-all';
+        name.textContent = (index + 1) + '. ' + fileName;
 
-        const actions = document.createElement('div');
-        actions.className = 'flex items-center gap-2 shrink-0';
+        heading.appendChild(name);
+        item.appendChild(heading);
 
-        const viewLink = document.createElement('a');
-        viewLink.href = viewUrl(file.url);
-        viewLink.target = '_blank';
-        viewLink.rel = 'noopener noreferrer';
-        viewLink.className = 'text-purple-600 text-xs font-bold';
-        viewLink.textContent = 'عرض';
+        // معاينة الصور
+        if (['png', 'jpg', 'jpeg', 'webp', 'gif', 'bmp'].includes(extension)) {
+            const image = document.createElement('img');
+            image.src = url;
+            image.alt = fileName;
+            image.className = 'w-full max-h-[500px] object-contain rounded-lg bg-slate-50';
+            image.loading = 'lazy';
+            item.appendChild(image);
+        }
 
-        const downloadLink = document.createElement('a');
-        downloadLink.href = downloadUrl(file.url);
-        downloadLink.download = '';
-        downloadLink.target = '_blank';
-        downloadLink.rel = 'noopener noreferrer';
-        downloadLink.className = 'text-slate-600 text-xs font-bold';
-        downloadLink.textContent = 'تحميل';
+        // معاينة ملفات PDF
+        else if (extension === 'pdf') {
+            const preview = document.createElement('iframe');
+            preview.src = viewUrl(url);
+            preview.className = 'w-full h-[500px] rounded-lg border border-slate-200';
+            preview.title = fileName;
+            item.appendChild(preview);
+        }
 
-        actions.appendChild(viewLink);
-        actions.appendChild(downloadLink);
-        item.appendChild(name);
-        item.appendChild(actions);
+        // الملفات التي لا يدعم المتصفح معاينتها مباشرة
+        else {
+            const notice = document.createElement('p');
+            notice.className = 'text-xs text-slate-500 bg-slate-50 p-4 rounded-lg';
+            notice.textContent = 'المعاينة المباشرة غير متاحة لهذا النوع من الملفات. يمكنك تحميله.';
+            item.appendChild(notice);
+        }
+
+        const download = document.createElement('a');
+        download.href = downloadUrl(url);
+        download.download = '';
+        download.target = '_blank';
+        download.rel = 'noopener noreferrer';
+        download.className = 'block text-center bg-purple-600 hover:bg-purple-700 text-white rounded-lg py-2.5 text-sm font-bold';
+        download.textContent = 'تحميل هذا الملف';
+
+        item.appendChild(download);
         attachmentsBox.appendChild(item);
     });
 
     openModal('detailsModal');
 }
+
 
         // 8. Populate Form Select elements
         function populateFormDropdowns() {
